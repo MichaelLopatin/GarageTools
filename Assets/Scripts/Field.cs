@@ -12,7 +12,7 @@ public class Field : MonoBehaviour
         centreTop,
         leftBottom,
         leftCentre,
-        leftTop = 0,
+        leftTop,
         rightBottom,
         rightCentre,
         rightTop,
