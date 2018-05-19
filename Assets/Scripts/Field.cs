@@ -4,40 +4,12 @@ using UnityEngine;
 
 public class Field : MonoBehaviour
 {
-
-    private enum CellType
+    private enum Row
     {
-        centreBottom,
-        centreCentre,
-        centreTop,
-        leftBottom,
-        leftCentre,
-        leftTop,
-        rightBottom,
-        rightCentre,
-        rightTop,
-        quantity
+        first,
+        allMiddle,
+        last
     }
-
-    public enum CellColour
-    {
-        blue = 0,
-        green,
-        yellow,
-        quantity
-    }
-
-    [SerializeField] private GameObject[] centreBottomCells = new GameObject[(int)CellColour.quantity];
-    [SerializeField] private GameObject[] centreCentreCells = new GameObject[(int)CellColour.quantity];
-    [SerializeField] private GameObject[] centreTopCells = new GameObject[(int)CellColour.quantity];
-
-    [SerializeField] private GameObject[] leftBottomCells = new GameObject[(int)CellColour.quantity];
-    [SerializeField] private GameObject[] leftCentreCells = new GameObject[(int)CellColour.quantity];
-    [SerializeField] private GameObject[] leftTopCells = new GameObject[(int)CellColour.quantity];
-
-    [SerializeField] private GameObject[] rightBottomCells = new GameObject[(int)CellColour.quantity];
-    [SerializeField] private GameObject[] rightCentreCells = new GameObject[(int)CellColour.quantity];
-    [SerializeField] private GameObject[] rightTopCells = new GameObject[(int)CellColour.quantity];
 
     public int level = 1;
     private int lastLevel = 1;
@@ -56,43 +28,124 @@ public class Field : MonoBehaviour
 
     private void Awake()
     {
+          SettingFieldParameters();
+    }
+
+    private void Start()
+    {
+        SetField(ref CellsPool.blueDisableCellsListOfStacks, ref CellsPool.blueEnableCellsListOfStacks, CellColour.blue, level, firstCellPosition);
+        SetField(ref CellsPool.greenDisableCellsListOfStacks, ref CellsPool.greenEnableCellsListOfStacks, CellColour.green, level, firstCellPosition);
+        SetField(ref CellsPool.yellowDisableCellsListOfStacks, ref CellsPool.yellowEnableCellsListOfStacks, CellColour.yellow, level, firstCellPosition);
+    }
+    private void Update()
+    {
+        //if (lastLevel != level)
+        //{
+        //    lastLevel = level;
+        //    curentFieldWidth = SetFieldWidth(level);
+        //    curentFieldHeight = SetFieldHeight(level);
+        //    curentUnitScale = SetUnitScale(level);
+
+        //    firstCellPosition = SetFirstCellPosition(curentFieldWidth, curentFieldHeight, curentUnitScale, gameFieldCentrePosition);
+        //    SetField(ref CellsPool.blueDisableCellsListOfStacks, CellColour.blue, level, firstCellPosition);
+        //}
+    }
+
+    private void SettingFieldParameters()
+    {
         SetFieldsCentrePositions(out gameFieldCentrePosition, out indicatorsCentrePosition);
         curentFieldWidth = SetFieldWidth(level);
         curentFieldHeight = SetFieldHeight(level);
         curentUnitScale = SetUnitScale(level);
-
         firstCellPosition = SetFirstCellPosition(curentFieldWidth, curentFieldHeight, curentUnitScale, gameFieldCentrePosition);
-        SetField(level);
     }
 
-    private void Update()
+    private void DisableField()
     {
-        if (lastLevel != level)
-        {
-            lastLevel = level;
-            curentFieldWidth = SetFieldWidth(level);
-            curentFieldHeight = SetFieldHeight(level);
-            curentUnitScale = SetUnitScale(level);
 
-            firstCellPosition = SetFirstCellPosition(curentFieldWidth, curentFieldHeight, curentUnitScale, gameFieldCentrePosition);
-            SetField(level);
-        }
     }
 
-    private void SetField(int level)
+    private void SetField(ref List<Stack<GameObject>> listCellsStack, ref List<Stack<GameObject>> listEnableCellsStack, CellColour colour, int level, Vector3 firstCellPosition)
+    {
+        Vector3 curentCellPosition = firstCellPosition;
+        switch (colour)
+        {
+            case CellColour.blue:
+                curentCellPosition.z = 5;
+                break;
+            case CellColour.green:
+                curentCellPosition.z = 4;
+                break;
+            case CellColour.yellow:
+                curentCellPosition.z = 3;
+                break;
+            default:
+                curentCellPosition.z = 5;
+                break;
+        }
+
+        Vector3 unitScale = new Vector3(curentUnitScale, curentUnitScale, curentUnitScale);
+
+        ActivateCellsRow(ref listCellsStack, ref listEnableCellsStack, Row.first, ref curentCellPosition, unitScale);
+        ActivateCellsRow(ref listCellsStack, ref listEnableCellsStack, Row.allMiddle, ref curentCellPosition, unitScale);
+        ActivateCellsRow(ref listCellsStack, ref listEnableCellsStack, Row.last, ref curentCellPosition, unitScale);
+    }
+
+    private void ActivateCellsRow(ref List<Stack<GameObject>> listCellsStack, ref List<Stack<GameObject>> listEnableCellsStack, Row row, ref Vector3 curentCellPosition, Vector3 unitScale)
+    {
+        CellType leftCell = CellType.leftTop;
+        CellType centreCell = CellType.centreTop;
+        CellType rightCell = CellType.rightTop;
+        int rowsQuantity = 0;
+
+        switch (row)
+        {
+            case Row.first:
+                rowsQuantity = 1;
+                leftCell = CellType.leftTop;
+                centreCell = CellType.centreTop;
+                rightCell = CellType.rightTop;
+                break;
+            case Row.allMiddle:
+                rowsQuantity = curentFieldHeight - 2;
+                leftCell = CellType.leftCentre;
+                centreCell = CellType.centreCentre;
+                rightCell = CellType.rightCentre;
+                break;
+            case Row.last:
+                rowsQuantity = 1;
+                leftCell = CellType.leftBottom;
+                centreCell = CellType.centreBottom;
+                rightCell = CellType.rightBottom;
+                break;
+            default:
+                break;
+        }
+        for (int i = 0; i < rowsQuantity; i++)
+        {
+            ActivateCell(ref listCellsStack, ref listEnableCellsStack, leftCell, ref curentCellPosition, unitScale, 1);
+            ActivateCell(ref listCellsStack, ref listEnableCellsStack, centreCell, ref curentCellPosition, unitScale, curentFieldWidth - 2);
+            ActivateCell(ref listCellsStack, ref listEnableCellsStack, rightCell, ref curentCellPosition, unitScale, 1);
+    curentCellPosition.x = firstCellPosition.x;
+        curentCellPosition.y -= curentUnitScale;
+    }
+        
+    }
+
+    private void ActivateCell(ref List<Stack<GameObject>> listCellsStack, ref List<Stack<GameObject>> listEnableCellsStack, CellType cellType, ref Vector3 curentCellPosition, Vector3 unitScale, int cellsQuantity)
     {
         GameObject cell;
-        for (int j = 0; j < curentFieldHeight; j++)
+        for (int i = 0; i < cellsQuantity; i++)
         {
-            for (int i = 0; i < curentFieldWidth; i++)
-            {
-                cell = Instantiate(centreCentreCells[1], new Vector3(firstCellPosition.x + i * curentUnitScale, firstCellPosition.y - j * curentUnitScale, 2 - level), transform.rotation);
-                cell.transform.localScale = new Vector3(curentUnitScale, curentUnitScale, curentUnitScale);
-            }
+            cell = listCellsStack[(int)cellType].Pop();
+            cell.transform.position = curentCellPosition;
+            cell.transform.localScale = unitScale;
+            cell.SetActive(true);
+            listEnableCellsStack[(int)cellType].Push(cell);
+            curentCellPosition.x += curentUnitScale;
         }
-
-
     }
+
     private void SetFieldsCentrePositions(out Vector3 gameFieldCentrePosition, out Vector3 indicatorsCentrePosition)
     {
         Vector3 screenSizeInUnits;
