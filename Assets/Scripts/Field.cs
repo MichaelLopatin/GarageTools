@@ -4,12 +4,25 @@ using UnityEngine;
 
 public class Field : MonoBehaviour
 {
+    public delegate void ChangeCellsCoordinates(float [,,] cellsXYCoordinates);
+    public static event ChangeCellsCoordinates ChangeCellsCoordinatesEvent;
+    public delegate void ChangeFieldParameters(int curentFieldWidth,int curentFieldHeight, float curentUnitScale);
+    public static event ChangeFieldParameters ChangeFieldParametersEvent;
+
     private enum Row
     {
         first,
         allMiddle,
         last
     }
+
+   private enum CellInfo
+    {
+        id=0,
+        x,
+        y
+    }
+
     [SerializeField] private Camera mainCam;
 
     public int level = 1;
@@ -17,12 +30,14 @@ public class Field : MonoBehaviour
     //    private int maxLevel = 10;
 
     private float curentUnitScale;
-    private int curentFieldWidth;
-    private int curentFieldHeight;
+    private int curentFieldWidth=0;
+    private int curentFieldHeight=0;
 
     private Vector3 gameFieldCentrePosition;
     private Vector3 indicatorsCentrePosition;
     private Vector3 firstCellPosition;
+
+    private float[,,] cellsXYCoordinates;
 
     //   int count = 0;
 
@@ -68,6 +83,35 @@ public class Field : MonoBehaviour
         curentFieldHeight = SetFieldHeight(level);
         curentUnitScale = SetUnitScale(level);
         firstCellPosition = SetFirstCellPosition(curentFieldWidth, curentFieldHeight, curentUnitScale, gameFieldCentrePosition);
+        SetCellsCoordinates(out cellsXYCoordinates, curentFieldWidth, curentFieldHeight, curentUnitScale, firstCellPosition);
+        if (ChangeCellsCoordinatesEvent != null)
+        {
+            ChangeCellsCoordinatesEvent(cellsXYCoordinates);
+        }
+        if (ChangeFieldParametersEvent != null)
+        {
+            ChangeFieldParametersEvent(curentFieldWidth, curentFieldHeight, curentUnitScale);
+        }
+    }
+
+    private void SetCellsCoordinates(out float[,,] cellsXYCoordinates, int curentFieldWidth, int curentFieldHeight, float curentUnitScale, Vector3 firstCellPosition)
+    {
+        Vector3 curentCellCoord = firstCellPosition;
+        cellsXYCoordinates = new float[curentFieldWidth, curentFieldHeight, 3];
+        for (int i = 0, k = 0; i < curentFieldWidth; i++)
+        {
+            for (int j = 0; j < curentFieldHeight; j++, k++)
+            {
+                cellsXYCoordinates[i, j, (int)CellInfo.id] = k;
+                cellsXYCoordinates[i, j, (int)CellInfo.x] = curentCellCoord.x;
+                cellsXYCoordinates[i, j, (int)CellInfo.y] = curentCellCoord.y;
+                curentCellCoord.x += curentUnitScale;
+            //    print("id= " + cellsXYCoordinates[i, j, (int)CellInfo.id] + " x= " + cellsXYCoordinates[i, j, (int)CellInfo.x] + " y= " + cellsXYCoordinates[i, j, (int)CellInfo.y]);
+            }
+            curentCellCoord.x = firstCellPosition.x;
+            curentCellCoord.y -= curentUnitScale;
+        }
+
     }
 
     private void DisableField(ref List<Stack<GameObject>> listReservCellsStack, ref List<Stack<GameObject>> listOnFieldCellsStack)
