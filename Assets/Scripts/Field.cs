@@ -23,7 +23,16 @@ public class Field : MonoBehaviour
         y
     }
 
+    private enum CellColour
+    {
+        blue = 0,
+        green,
+        yellow
+    }
+
     [SerializeField] private Camera mainCam;
+
+    private int[] cellColourByIndex;
 
     public int level = 1;
     //    private int lastLevel = 1;
@@ -111,7 +120,16 @@ public class Field : MonoBehaviour
             curentCellCoord.x = firstCellPosition.x;
             curentCellCoord.y -= curentUnitScale;
         }
+    }
 
+    private void SetInitialCellColourByIndex(out int[] cells, int width, int heigth)
+    {
+        int cellsNumber = width * heigth;
+        cells = new int[cellsNumber];
+        for (int i = 0; i < cellsNumber; i++)
+        {
+            cells[i] = (int)CellColour.blue;
+        }
     }
 
     private void DisableField(ref List<Stack<GameObject>> listReservCellsStack, ref List<Stack<GameObject>> listOnFieldCellsStack)

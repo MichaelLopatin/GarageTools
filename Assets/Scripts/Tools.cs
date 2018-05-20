@@ -6,9 +6,15 @@ using UnityEngine;
 
 public class Tools : MonoBehaviour
 {
+    private enum Cell
+    {
+        id=0,
+        toolsType,
+        isDelete
+   }
     private float[,,] toolsXYCoordinates;
 
-    private float[,,] tools;
+    private float[,,] toolsInCellsInfo;
 
     private float curentUnitScale = 0f;
     private int curentFieldWidth = 0;
@@ -19,6 +25,9 @@ public class Tools : MonoBehaviour
     {
 
     }
+
+
+
     private void OnEnable()
     {
         Field.ChangeCellsCoordinatesEvent += SetToolsXYCoordinates;
@@ -28,6 +37,11 @@ public class Tools : MonoBehaviour
     {
         Field.ChangeCellsCoordinatesEvent -= SetToolsXYCoordinates;
         Field.ChangeFieldParametersEvent -= SetFieldParameters;
+    }
+
+    private void SetToolsFieldInfo()
+    {
+
     }
 
     private void SetToolsXYCoordinates(float[,,] cellsXYCoordinates)
