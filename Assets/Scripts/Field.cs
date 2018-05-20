@@ -247,7 +247,7 @@ public class Field : MonoBehaviour
         float x, y;
         x = fieldCentrePosition.x - (curentUnitScale * curentFieldWidth * 0.5f) + curentUnitScale * 0.5f;
         y = fieldCentrePosition.y + (curentUnitScale * curentFieldHeight * 0.5f) - curentUnitScale * 0.5f;
-        print(new Vector3(x, y, 0));
+     //   print(new Vector3(x, y, 0));
         return new Vector3(x, y, 0);
     }
 

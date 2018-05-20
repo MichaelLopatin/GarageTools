@@ -348,7 +348,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCam: {fileID: 1129904278}
-  level: 5
+  level: 10
 --- !u!114 &483578600
 MonoBehaviour:
   m_ObjectHideFlags: 0
