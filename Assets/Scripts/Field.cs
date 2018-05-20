@@ -10,46 +10,56 @@ public class Field : MonoBehaviour
         allMiddle,
         last
     }
+    [SerializeField] private Camera mainCam;
 
     public int level = 1;
-    private int lastLevel = 1;
-
-    private int maxLevel = 10;
-
-    [SerializeField] private Camera mainCam;
+    //    private int lastLevel = 1;
+    //    private int maxLevel = 10;
 
     private float curentUnitScale;
     private int curentFieldWidth;
     private int curentFieldHeight;
+
     private Vector3 gameFieldCentrePosition;
     private Vector3 indicatorsCentrePosition;
-
     private Vector3 firstCellPosition;
+
+    //   int count = 0;
 
     private void Awake()
     {
-          SettingFieldParameters();
+        SettingFieldParameters();
     }
 
     private void Start()
     {
-        SetField(ref CellsPool.blueDisableCellsListOfStacks, ref CellsPool.blueEnableCellsListOfStacks, CellColour.blue, level, firstCellPosition);
-        SetField(ref CellsPool.greenDisableCellsListOfStacks, ref CellsPool.greenEnableCellsListOfStacks, CellColour.green, level, firstCellPosition);
-        SetField(ref CellsPool.yellowDisableCellsListOfStacks, ref CellsPool.yellowEnableCellsListOfStacks, CellColour.yellow, level, firstCellPosition);
-    }
-    private void Update()
-    {
-        //if (lastLevel != level)
+        SetField(ref CellsPool.blueCellsReservedListOfStacks, ref CellsPool.blueCellsOnFieldListOfStacks, CellColour.blue, level, firstCellPosition);
+        SetField(ref CellsPool.greenCellsReservedListOfStacks, ref CellsPool.greenCellsOnFieldListOfStacks, CellColour.green, level, firstCellPosition);
+        SetField(ref CellsPool.yellowCellsReservedListOfStacks, ref CellsPool.yellowCellsOnFieldListOfStacks, CellColour.yellow, level, firstCellPosition);
+        //for(int i=0;i< CellsPool.blueCellsOnFieldListOfStacks.Count;i++)
         //{
-        //    lastLevel = level;
-        //    curentFieldWidth = SetFieldWidth(level);
-        //    curentFieldHeight = SetFieldHeight(level);
-        //    curentUnitScale = SetUnitScale(level);
-
-        //    firstCellPosition = SetFirstCellPosition(curentFieldWidth, curentFieldHeight, curentUnitScale, gameFieldCentrePosition);
-        //    SetField(ref CellsPool.blueDisableCellsListOfStacks, CellColour.blue, level, firstCellPosition);
+        //    print("CellsPool.blueCellsOnFieldListOfStacks["+i+"].Count");
+        //    print(CellsPool.blueCellsOnFieldListOfStacks[i].Count);
         //}
     }
+
+    /*  private void Update()
+      {
+          count++;
+          if(count>600)
+          {
+              DisableField(ref CellsPool.yellowCellsReservedListOfStacks, ref CellsPool.yellowCellsOnFieldListOfStacks);
+          }
+          else if (count > 400)
+          {
+              DisableField(ref CellsPool.greenCellsReservedListOfStacks, ref CellsPool.greenCellsOnFieldListOfStacks);
+          }
+          else if (count > 200)
+          {
+                DisableField(ref CellsPool.blueCellsReservedListOfStacks, ref CellsPool.blueCellsOnFieldListOfStacks);
+
+          }
+      }*/
 
     private void SettingFieldParameters()
     {
@@ -60,38 +70,48 @@ public class Field : MonoBehaviour
         firstCellPosition = SetFirstCellPosition(curentFieldWidth, curentFieldHeight, curentUnitScale, gameFieldCentrePosition);
     }
 
-    private void DisableField()
+    private void DisableField(ref List<Stack<GameObject>> listReservCellsStack, ref List<Stack<GameObject>> listOnFieldCellsStack)
     {
-
+        GameObject cell;
+        int cellsQuantity = 0;
+        for (int i = 0; i < (int)CellType.quantity; i++)
+        {
+            cellsQuantity = listOnFieldCellsStack[i].Count;
+            for (int j = 0; j < cellsQuantity; j++)
+            {
+                cell = listOnFieldCellsStack[i].Pop();
+                cell.SetActive(false);
+                listReservCellsStack[i].Push(cell);
+            }
+        }
     }
 
-    private void SetField(ref List<Stack<GameObject>> listCellsStack, ref List<Stack<GameObject>> listEnableCellsStack, CellColour colour, int level, Vector3 firstCellPosition)
+    private void SetField(ref List<Stack<GameObject>> listReservCellsStack, ref List<Stack<GameObject>> listOnFieldCellsStack, CellColour colour, int level, Vector3 firstCellPosition)
     {
         Vector3 curentCellPosition = firstCellPosition;
         switch (colour)
         {
             case CellColour.blue:
-                curentCellPosition.z = 5;
+                curentCellPosition.z = 3;
                 break;
             case CellColour.green:
                 curentCellPosition.z = 4;
                 break;
             case CellColour.yellow:
-                curentCellPosition.z = 3;
-                break;
-            default:
                 curentCellPosition.z = 5;
                 break;
+            default:
+                curentCellPosition.z = 3;
+                break;
         }
-
         Vector3 unitScale = new Vector3(curentUnitScale, curentUnitScale, curentUnitScale);
 
-        ActivateCellsRow(ref listCellsStack, ref listEnableCellsStack, Row.first, ref curentCellPosition, unitScale);
-        ActivateCellsRow(ref listCellsStack, ref listEnableCellsStack, Row.allMiddle, ref curentCellPosition, unitScale);
-        ActivateCellsRow(ref listCellsStack, ref listEnableCellsStack, Row.last, ref curentCellPosition, unitScale);
+        ActivateCellsRow(ref listReservCellsStack, ref listOnFieldCellsStack, Row.first, ref curentCellPosition, unitScale);
+        ActivateCellsRow(ref listReservCellsStack, ref listOnFieldCellsStack, Row.allMiddle, ref curentCellPosition, unitScale);
+        ActivateCellsRow(ref listReservCellsStack, ref listOnFieldCellsStack, Row.last, ref curentCellPosition, unitScale);
     }
 
-    private void ActivateCellsRow(ref List<Stack<GameObject>> listCellsStack, ref List<Stack<GameObject>> listEnableCellsStack, Row row, ref Vector3 curentCellPosition, Vector3 unitScale)
+    private void ActivateCellsRow(ref List<Stack<GameObject>> listReservCellsStack, ref List<Stack<GameObject>> listOnFieldCellsStack, Row row, ref Vector3 curentCellPosition, Vector3 unitScale)
     {
         CellType leftCell = CellType.leftTop;
         CellType centreCell = CellType.centreTop;
@@ -123,25 +143,24 @@ public class Field : MonoBehaviour
         }
         for (int i = 0; i < rowsQuantity; i++)
         {
-            ActivateCell(ref listCellsStack, ref listEnableCellsStack, leftCell, ref curentCellPosition, unitScale, 1);
-            ActivateCell(ref listCellsStack, ref listEnableCellsStack, centreCell, ref curentCellPosition, unitScale, curentFieldWidth - 2);
-            ActivateCell(ref listCellsStack, ref listEnableCellsStack, rightCell, ref curentCellPosition, unitScale, 1);
-    curentCellPosition.x = firstCellPosition.x;
-        curentCellPosition.y -= curentUnitScale;
-    }
-        
+            ActivateCell(ref listReservCellsStack, ref listOnFieldCellsStack, leftCell, ref curentCellPosition, unitScale, 1);
+            ActivateCell(ref listReservCellsStack, ref listOnFieldCellsStack, centreCell, ref curentCellPosition, unitScale, curentFieldWidth - 2);
+            ActivateCell(ref listReservCellsStack, ref listOnFieldCellsStack, rightCell, ref curentCellPosition, unitScale, 1);
+            curentCellPosition.x = firstCellPosition.x;
+            curentCellPosition.y -= curentUnitScale;
+        }
     }
 
-    private void ActivateCell(ref List<Stack<GameObject>> listCellsStack, ref List<Stack<GameObject>> listEnableCellsStack, CellType cellType, ref Vector3 curentCellPosition, Vector3 unitScale, int cellsQuantity)
+    private void ActivateCell(ref List<Stack<GameObject>> listReservCellsStack, ref List<Stack<GameObject>> listOnFieldCellsStack, CellType cellType, ref Vector3 curentCellPosition, Vector3 unitScale, int cellsQuantity)
     {
         GameObject cell;
         for (int i = 0; i < cellsQuantity; i++)
         {
-            cell = listCellsStack[(int)cellType].Pop();
+            cell = listReservCellsStack[(int)cellType].Pop();
             cell.transform.position = curentCellPosition;
             cell.transform.localScale = unitScale;
             cell.SetActive(true);
-            listEnableCellsStack[(int)cellType].Push(cell);
+            listOnFieldCellsStack[(int)cellType].Push(cell);
             curentCellPosition.x += curentUnitScale;
         }
     }
@@ -187,5 +206,4 @@ public class Field : MonoBehaviour
         float[] unitScale = new float[] { 1.25f, 1.1f, 1f, 0.9f, 0.8f, 0.75f, 0.65f, 0.6f, 0.6f, 0.55f };
         return unitScale[level - 1];
     }
-
 }

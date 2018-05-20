@@ -596,7 +596,7 @@ GameObject:
   - component: {fileID: 483578599}
   - component: {fileID: 483578600}
   m_Layer: 0
-  m_Name: StartGameScripts
+  m_Name: GameScripts
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -626,7 +626,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ef67c14ce228f442ad45ffd4563fce3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  level: 1
+  level: 5
   mainCam: {fileID: 1129904278}
 --- !u!114 &483578600
 MonoBehaviour:
