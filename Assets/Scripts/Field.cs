@@ -4,10 +4,17 @@ using UnityEngine;
 
 public class Field : MonoBehaviour
 {
-    public delegate void ChangeCellsCoordinates(float [,,] cellsXYCoordinates);
-    public static event ChangeCellsCoordinates ChangeCellsCoordinatesEvent;
-    public delegate void ChangeFieldParameters(int curentFieldWidth,int curentFieldHeight, float curentUnitScale);
-    public static event ChangeFieldParameters ChangeFieldParametersEvent;
+    //public delegate void ChangeCellsCoordinates(float [,,] cellsXYCoordinates);
+    //public static event ChangeCellsCoordinates ChangeCellsCoordinatesEvent;
+    //public delegate void ChangeFieldParameters(int curentFieldWidth,int curentFieldHeight, float curentUnitScale);
+    //public static event ChangeFieldParameters ChangeFieldParametersEvent;
+
+    public delegate void TestDeleg();
+    public static event TestDeleg TestDelegEvent;
+    public delegate void Coordinates(float[,,] cellsCoord);
+    public static event Coordinates CoordinatesEvent;
+    public delegate void FieldParametrs(int curentFieldWidth, int curentFieldHeight, float curentUnitScale);
+    public static event FieldParametrs FieldParametrsEvent;
 
     private enum Row
     {
@@ -53,10 +60,18 @@ public class Field : MonoBehaviour
     private void Awake()
     {
         SettingFieldParameters();
+        
+        
     }
 
     private void Start()
     {
+        print("TestEvent");
+        if(TestDelegEvent != null)
+        {
+            TestDelegEvent();
+        }
+
         SetField(ref CellsPool.blueCellsReservedListOfStacks, ref CellsPool.blueCellsOnFieldListOfStacks, CellColour.blue, level, firstCellPosition);
         SetField(ref CellsPool.greenCellsReservedListOfStacks, ref CellsPool.greenCellsOnFieldListOfStacks, CellColour.green, level, firstCellPosition);
         SetField(ref CellsPool.yellowCellsReservedListOfStacks, ref CellsPool.yellowCellsOnFieldListOfStacks, CellColour.yellow, level, firstCellPosition);
@@ -65,6 +80,14 @@ public class Field : MonoBehaviour
         //    print("CellsPool.blueCellsOnFieldListOfStacks["+i+"].Count");
         //    print(CellsPool.blueCellsOnFieldListOfStacks[i].Count);
         //}
+        if(CoordinatesEvent!=null)
+        {
+            CoordinatesEvent(cellsXYCoordinates);
+        }
+        if (FieldParametrsEvent != null)
+        {
+            FieldParametrsEvent(curentFieldWidth, curentFieldHeight, curentUnitScale);
+        }
     }
 
     /*  private void Update()
@@ -93,14 +116,16 @@ public class Field : MonoBehaviour
         curentUnitScale = SetUnitScale(level);
         firstCellPosition = SetFirstCellPosition(curentFieldWidth, curentFieldHeight, curentUnitScale, gameFieldCentrePosition);
         SetCellsCoordinates(out cellsXYCoordinates, curentFieldWidth, curentFieldHeight, curentUnitScale, firstCellPosition);
-        if (ChangeCellsCoordinatesEvent != null)
-        {
-            ChangeCellsCoordinatesEvent(cellsXYCoordinates);
-        }
-        if (ChangeFieldParametersEvent != null)
-        {
-            ChangeFieldParametersEvent(curentFieldWidth, curentFieldHeight, curentUnitScale);
-        }
+        print("события");
+        //if (ChangeCellsCoordinatesEvent != null)
+        //{
+        //    ChangeCellsCoordinatesEvent(cellsXYCoordinates);
+        //}
+        //if (ChangeFieldParametersEvent != null)
+        //{
+        //    print("ChangeFieldParametersEvent");
+        //    ChangeFieldParametersEvent(curentFieldWidth, curentFieldHeight, curentUnitScale);
+        //}
     }
 
     private void SetCellsCoordinates(out float[,,] cellsXYCoordinates, int curentFieldWidth, int curentFieldHeight, float curentUnitScale, Vector3 firstCellPosition)

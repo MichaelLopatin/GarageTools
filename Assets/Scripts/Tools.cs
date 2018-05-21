@@ -31,35 +31,51 @@ public class Tools : MonoBehaviour
     {
         FillGameField(out gameField, curentFieldWidth, curentFieldWidth);
         PrintField(gameField, curentFieldWidth, curentFieldHeight);
+        SetToolsOnFieldInStart(gameField, ref ToolsPool.toolsReservedListOfStacks, ref ToolsPool.toolsOnFieldListOfStacks, curentFieldWidth, curentFieldHeight, curentUnitScale);
+
     }
 
     private void OnEnable()
     {
-        Field.ChangeCellsCoordinatesEvent += SetToolsXYCoordinates;
-        Field.ChangeFieldParametersEvent += SetFieldParameters;
+        Field.TestDelegEvent += TestPr;
+        //     Field.ChangeFieldParametersEvent += SetFieldParameters;
+        Field.CoordinatesEvent += SetXYCoordinates;
+        Field.FieldParametrsEvent += FieldParameters;
     }
     private void OnDisable()
     {
-        Field.ChangeCellsCoordinatesEvent -= SetToolsXYCoordinates;
-        Field.ChangeFieldParametersEvent -= SetFieldParameters;
+        Field.TestDelegEvent -= TestPr;
+
     }
 
     private void SetToolsFieldInfo()
     {
 
     }
-
-    private void SetToolsXYCoordinates(float[,,] cellsXYCoordinates)
+    private void SetXYCoordinates(float[,,] cellXYCoordinates)
     {
-        toolsXYCoordinates = (float[,,])cellsXYCoordinates.Clone();
+        print("SetXYCoordinates сработало");
+        toolsXYCoordinates = (float[,,])cellXYCoordinates.Clone();
     }
 
-    private void SetFieldParameters(int width, int height, float scale)
+    //private void SetToolsXYCoordinates(float[,,] cellsXYCoordinates)
+    //{
+    //    toolsXYCoordinates = (float[,,])cellsXYCoordinates.Clone();
+    //}
+
+    private void FieldParameters(int width, int height, float scale)
     {
         curentFieldWidth = width;
         curentFieldHeight = height;
         curentUnitScale = scale;
     }
+
+    //private void SetFieldParameters(int width, int height, float scale)
+    //{
+    //    curentFieldWidth = width;
+    //    curentFieldHeight = height;
+    //    curentUnitScale = scale;
+    //}
 
 
     private void FillGameField(out int[,] gameField, int width, int height)
@@ -253,4 +269,36 @@ public class Tools : MonoBehaviour
         }
         print(s);
     }
+    private void TestPr()
+    {
+        print("Тестовое соытие сработало");
+    }
+
+    private void SetToolsOnFieldInStart(int[,] gameField, ref List<Stack<GameObject>> toolsReservedListOfStacks, ref List<Stack<GameObject>> toolsOnFieldListOfStacks, int width, int height, float curentUnitScale)
+    {
+        GameObject tool;
+        Vector3 curentToolPosition = Vector3.zero;
+        Vector3 unitScale = new Vector3(curentUnitScale, curentUnitScale, curentUnitScale);
+        //    print("SetToolsOnFieldInStart запуск");
+        //     print("width " + width + " height " + height);
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                tool = toolsReservedListOfStacks[gameField[i, j]].Pop();
+                //        print("pop " + tool);
+              //  tool.GetComponent<ToolInfo>().CellID = gameField[i, j, (int)Cell.id];
+                curentToolPosition.x = toolsXYCoordinates[i, j, 1];// заменить toolsXYCoordinates
+                curentToolPosition.y = toolsXYCoordinates[i, j, 2];
+                tool.transform.position = curentToolPosition;
+                //       print("x= " + curentToolPosition.x+ "y= " + curentToolPosition.y);
+                tool.transform.localScale = unitScale;
+                tool.SetActive(true);
+                //       print("tool set activ");
+                //           toolsOnFieldListOfStacks[gameField[i, j, (int)Cell.toolsType]].Push(tool);
+            }
+        }
+        //    print("SetToolsOnFieldInStart конец");
+    }
+
 }
