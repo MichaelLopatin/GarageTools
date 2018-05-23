@@ -5,6 +5,7 @@ using UnityEngine;
 public class MouseController : MonoBehaviour
 {
     private Vector3 mousePosInWorld;
+//    private Vector3 mousePosInScreen;
     [SerializeField] private Camera camera;
 
     private float curentUnitScale;
@@ -12,6 +13,16 @@ public class MouseController : MonoBehaviour
     private int curentFieldHeight = 0;
     //private int centreWidthtIndex = 0;
     //private int centreHeightIndex = 0;
+
+
+    private float percentageOfUnitForSwipe = 0.3f;
+ private float swipeLaunchDistance = 1f;
+    private float deltaX;
+    private float deltaY;
+    private bool isMouseButtonDown=false;
+    private bool isSwiping=false;
+
+    private int selectedСellID;
 
     private float[,,] cellsXYCoordinates;
 
@@ -44,15 +55,77 @@ public class MouseController : MonoBehaviour
     }
     private void Update()
     {
+        if (isMouseButtonDown && !isSwiping)
+        {
+            DetermineSwipe();
+        }
+
         if (Input.GetMouseButtonDown(1))
         {
             PrintField(cellsXYCoordinates, curentFieldWidth, curentFieldHeight, 2);
         }
         if (Input.GetMouseButtonDown(0))
         {
-            mousePosInWorld = camera.ScreenToWorldPoint(Input.mousePosition);
+            if (!isSwiping)
+            {
+           mousePosInWorld = camera.ScreenToWorldPoint(Input.mousePosition);
+            selectedСellID = SearchCellID(mousePosInWorld);
+            isMouseButtonDown = true;
+                // событие выделить клетку с ID selectedСellID
+            }
 
-            print("cell ID = " + SearchCellID(mousePosInWorld));
+
+
+        }
+        if (Input.GetMouseButtonUp(0))
+        {
+            isMouseButtonDown = false;
+        }
+    }
+
+
+    private void DetermineSwipe()
+    {
+        deltaX = mousePosInWorld.x - camera.ScreenToWorldPoint(Input.mousePosition).x;
+        deltaY = mousePosInWorld.y - camera.ScreenToWorldPoint(Input.mousePosition).y;
+        if (Mathf.Abs(deltaX) > swipeLaunchDistance || Mathf.Abs(deltaY) > swipeLaunchDistance)
+        {
+            isSwiping = true;
+            if (Mathf.Abs(deltaX) > Mathf.Abs(deltaY))
+            {
+                if (deltaX < 0)
+                {
+                    if (selectedСellID % curentFieldWidth != 0)
+                    {
+                        //новое положение  ID-1
+                    }
+                }
+                else
+                {
+                    if (selectedСellID % curentFieldWidth != curentFieldWidth-1)
+                    {
+                    //новое положение  ID+1
+                    }
+
+                }
+            }
+            else
+            {
+                if (deltaY > 0)
+                {
+                    if (selectedСellID > curentFieldWidth - 1)
+                    {
+                        //новое положение  ID-curentFieldWidth
+                    }
+                }
+                else
+                {
+                    if (selectedСellID < (curentFieldWidth * (curentFieldHeight - 1) - 1))
+                    {
+                        //новое положение  ID+curentFieldWidth
+                    }
+                }
+            }
         }
     }
 
@@ -66,6 +139,7 @@ public class MouseController : MonoBehaviour
         curentFieldWidth = width;
         curentFieldHeight = height;
         curentUnitScale = scale;
+        swipeLaunchDistance = percentageOfUnitForSwipe * curentUnitScale;
     }
 
     private int SearchCellID(Vector3 mousePosInWorld)
