@@ -61,7 +61,7 @@ public class ToolsPool : MonoBehaviour
 
     private void SetToolsOnFieldList(ref List<Stack<GameObject>> stackList, int[] numberOfPiecesEachToolType)
     {
-        for (int i = 0; i < (int)CellType.quantity; i++)
+        for (int i = 0; i < (int)ToolType.quantity; i++)
         {
             stackList.Add(new Stack<GameObject>(numberOfPiecesEachToolType[i]));
         }

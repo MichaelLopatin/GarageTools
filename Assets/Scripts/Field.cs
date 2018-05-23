@@ -4,17 +4,10 @@ using UnityEngine;
 
 public class Field : MonoBehaviour
 {
-    //public delegate void ChangeCellsCoordinates(float [,,] cellsXYCoordinates);
-    //public static event ChangeCellsCoordinates ChangeCellsCoordinatesEvent;
-    //public delegate void ChangeFieldParameters(int curentFieldWidth,int curentFieldHeight, float curentUnitScale);
-    //public static event ChangeFieldParameters ChangeFieldParametersEvent;
-
-    public delegate void TestDeleg();
-    public static event TestDeleg TestDelegEvent;
-    public delegate void Coordinates(float[,,] cellsCoord);
-    public static event Coordinates CoordinatesEvent;
-    public delegate void FieldParametrs(int curentFieldWidth, int curentFieldHeight, float curentUnitScale);
-    public static event FieldParametrs FieldParametrsEvent;
+    public delegate void ChangeCellsCoordinates(float[,,] cellsXYCoordinates);
+    public static event ChangeCellsCoordinates ChangeCellsCoordinatesEvent;
+    public delegate void ChangeFieldParameters(int curentFieldWidth, int curentFieldHeight, float curentUnitScale);
+    public static event ChangeFieldParameters ChangeFieldParametersEvent;
 
     private enum Row
     {
@@ -23,9 +16,9 @@ public class Field : MonoBehaviour
         last
     }
 
-   private enum CellInfo
+    private enum CellInfo
     {
-        id=0,
+        id = 0,
         x,
         y
     }
@@ -42,12 +35,10 @@ public class Field : MonoBehaviour
     private int[] cellColourByIndex;
 
     public int level = 1;
-    //    private int lastLevel = 1;
-    //    private int maxLevel = 10;
 
     private float curentUnitScale;
-    private int curentFieldWidth=0;
-    private int curentFieldHeight=0;
+    private int curentFieldWidth = 0;
+    private int curentFieldHeight = 0;
 
     private Vector3 gameFieldCentrePosition;
     private Vector3 indicatorsCentrePosition;
@@ -60,33 +51,20 @@ public class Field : MonoBehaviour
     private void Awake()
     {
         SettingFieldParameters();
-        
-        
     }
 
     private void Start()
     {
-        print("TestEvent");
-        if(TestDelegEvent != null)
-        {
-            TestDelegEvent();
-        }
-
         SetField(ref CellsPool.blueCellsReservedListOfStacks, ref CellsPool.blueCellsOnFieldListOfStacks, CellColour.blue, level, firstCellPosition);
         SetField(ref CellsPool.greenCellsReservedListOfStacks, ref CellsPool.greenCellsOnFieldListOfStacks, CellColour.green, level, firstCellPosition);
         SetField(ref CellsPool.yellowCellsReservedListOfStacks, ref CellsPool.yellowCellsOnFieldListOfStacks, CellColour.yellow, level, firstCellPosition);
-        //for(int i=0;i< CellsPool.blueCellsOnFieldListOfStacks.Count;i++)
-        //{
-        //    print("CellsPool.blueCellsOnFieldListOfStacks["+i+"].Count");
-        //    print(CellsPool.blueCellsOnFieldListOfStacks[i].Count);
-        //}
-        if(CoordinatesEvent!=null)
+        if (ChangeCellsCoordinatesEvent != null)
         {
-            CoordinatesEvent(cellsXYCoordinates);
+            ChangeCellsCoordinatesEvent(cellsXYCoordinates);
         }
-        if (FieldParametrsEvent != null)
+        if (ChangeFieldParametersEvent != null)
         {
-            FieldParametrsEvent(curentFieldWidth, curentFieldHeight, curentUnitScale);
+            ChangeFieldParametersEvent(curentFieldWidth, curentFieldHeight, curentUnitScale);
         }
     }
 
@@ -116,16 +94,6 @@ public class Field : MonoBehaviour
         curentUnitScale = SetUnitScale(level);
         firstCellPosition = SetFirstCellPosition(curentFieldWidth, curentFieldHeight, curentUnitScale, gameFieldCentrePosition);
         SetCellsCoordinates(out cellsXYCoordinates, curentFieldWidth, curentFieldHeight, curentUnitScale, firstCellPosition);
-        print("события");
-        //if (ChangeCellsCoordinatesEvent != null)
-        //{
-        //    ChangeCellsCoordinatesEvent(cellsXYCoordinates);
-        //}
-        //if (ChangeFieldParametersEvent != null)
-        //{
-        //    print("ChangeFieldParametersEvent");
-        //    ChangeFieldParametersEvent(curentFieldWidth, curentFieldHeight, curentUnitScale);
-        //}
     }
 
     private void SetCellsCoordinates(out float[,,] cellsXYCoordinates, int curentFieldWidth, int curentFieldHeight, float curentUnitScale, Vector3 firstCellPosition)
@@ -140,8 +108,7 @@ public class Field : MonoBehaviour
                 cellsXYCoordinates[i, j, (int)CellInfo.x] = curentCellCoord.x;
                 cellsXYCoordinates[i, j, (int)CellInfo.y] = curentCellCoord.y;
                 curentCellCoord.x += curentUnitScale;
-            //    print("id= " + cellsXYCoordinates[i, j, (int)CellInfo.id] + " x= " + cellsXYCoordinates[i, j, (int)CellInfo.x] + " y= " + cellsXYCoordinates[i, j, (int)CellInfo.y]);
-            }
+             }
             curentCellCoord.x = firstCellPosition.x;
             curentCellCoord.y -= curentUnitScale;
         }
@@ -266,13 +233,11 @@ public class Field : MonoBehaviour
         indicatorsCentrePosition = new Vector3(xIndicatorsPos, 0, 0);
     }
 
-
     private Vector3 SetFirstCellPosition(int curentFieldWidth, int curentFieldHeight, float curentUnitScale, Vector3 fieldCentrePosition)
     {
         float x, y;
         x = fieldCentrePosition.x - (curentUnitScale * curentFieldWidth * 0.5f) + curentUnitScale * 0.5f;
         y = fieldCentrePosition.y + (curentUnitScale * curentFieldHeight * 0.5f) - curentUnitScale * 0.5f;
-     //   print(new Vector3(x, y, 0));
         return new Vector3(x, y, 0);
     }
 
@@ -293,4 +258,7 @@ public class Field : MonoBehaviour
         float[] unitScale = new float[] { 1.25f, 1.1f, 1f, 0.9f, 0.8f, 0.75f, 0.65f, 0.6f, 0.6f, 0.55f };
         return unitScale[level - 1];
     }
+
+
+
 }
