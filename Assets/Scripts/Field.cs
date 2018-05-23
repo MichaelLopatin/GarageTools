@@ -35,8 +35,6 @@ public class Field : MonoBehaviour
     private int[] cellColourByIndex;
 
     public int level = 1;
-    //    private int lastLevel = 1;
-    //    private int maxLevel = 10;
 
     private float curentUnitScale;
     private int curentFieldWidth = 0;
@@ -235,7 +233,6 @@ public class Field : MonoBehaviour
         indicatorsCentrePosition = new Vector3(xIndicatorsPos, 0, 0);
     }
 
-
     private Vector3 SetFirstCellPosition(int curentFieldWidth, int curentFieldHeight, float curentUnitScale, Vector3 fieldCentrePosition)
     {
         float x, y;
@@ -261,4 +258,7 @@ public class Field : MonoBehaviour
         float[] unitScale = new float[] { 1.25f, 1.1f, 1f, 0.9f, 0.8f, 0.75f, 0.65f, 0.6f, 0.6f, 0.55f };
         return unitScale[level - 1];
     }
+
+
+
 }

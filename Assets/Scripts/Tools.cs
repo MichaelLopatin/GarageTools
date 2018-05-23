@@ -5,13 +5,16 @@ using UnityEngine;
 
 public class Tools : MonoBehaviour
 {
+    public delegate void ChangeGameField(int[,,] cellsXYCoordinates);
+    public static event ChangeGameField ChangeGameFieldEvent;
+
+
     private enum Cell
     {
         id = 0,
         toolsType = 1,
         x = 1,
         y = 2
-        //      isDelete
     }
 
     private float[,,] toolsXYCoordinates;
@@ -32,7 +35,6 @@ public class Tools : MonoBehaviour
         FillGameField(out gameField, curentFieldWidth, curentFieldWidth);
         PrintField(gameField, curentFieldWidth, curentFieldHeight);
         SetToolsOnFieldInStart(gameField, ref ToolsPool.toolsReservedListOfStacks, ref ToolsPool.toolsOnFieldListOfStacks, curentFieldWidth, curentFieldHeight, curentUnitScale);
-
     }
 
     private void OnEnable()
@@ -59,7 +61,6 @@ public class Tools : MonoBehaviour
         curentUnitScale = scale;
     }
 
-
     private void FillGameField(out int[,,] gameField, int width, int height)
     {
         int[] toolTypesNumber = new int[(int)((int)ToolType.toolBox * 0.5f)];
@@ -80,6 +81,10 @@ public class Tools : MonoBehaviour
         }
         PrintField(gameField, curentFieldWidth, curentFieldHeight);
         CheckAndRemoveMatchesInStart(ref gameField, toolTypesNumber, typesSingleToolsQuantity, width, height);
+        if(ChangeGameFieldEvent!=null)
+        {
+            ChangeGameFieldEvent(gameField);
+        }
     }
 
     private void CheckAndRemoveMatchesInStart(ref int[,,] gameField, int[] toolTypesNumber, int typesSingleToolsQuantity, int width, int height)
@@ -88,10 +93,11 @@ public class Tools : MonoBehaviour
         int lastCellType = -1;
         int match = 0;
 
-        for (int i = 0; i < width; i++)
+        for (int i = 0; i < height; i++)
         {
             match = 0;
-            for (int j = 0; j < height; j++)
+            lastCellType = -1;
+            for (int j = 0; j < width; j++)
             {
                 curentCellType = gameField[i, j, (int)Cell.toolsType];
                 if (lastCellType == curentCellType)
@@ -114,10 +120,11 @@ public class Tools : MonoBehaviour
         curentCellType = -1;
         lastCellType = -1;
 
-        for (int i = 0; i < width; i++)
+        for (int i = 0; i < height; i++)
         {
             match = 0;
-            for (int j = 0; j < height; j++)
+            lastCellType = -1;
+            for (int j = 0; j < width; j++)
             {
                 curentCellType = gameField[j, i, (int)Cell.toolsType];
                 if (lastCellType == curentCellType)
@@ -138,7 +145,6 @@ public class Tools : MonoBehaviour
             }
         }
     }
-
 
     private void RemoveMatchesInStart(ref int[,,] gameField, int column, int row, int typesSingleToolsQuantity)
     {
@@ -184,7 +190,7 @@ public class Tools : MonoBehaviour
         {
             neighbours[3] = gameField[column, row + 1, (int)Cell.toolsType];
         }
-         SimpleSort(ref neighbours);
+        SimpleSort(ref neighbours);
         for (int i = 0; i < 4; i++)
         {
             if (minTypeNumber == neighbours[i])
@@ -213,7 +219,7 @@ public class Tools : MonoBehaviour
         {
             for (int j = 0; j < height; j++)
             {
-                s = s + gameField[i, j, 1].ToString() + " ";
+                s = s + field[i, j, 1].ToString() + " ";
             }
 
             s = s + "\n";
@@ -238,7 +244,7 @@ public class Tools : MonoBehaviour
         }
     }
 
-    private void PrintArr(int[] arr)
+    private void PrintArr(int[] arr) // для текстового контроля
     {
         string s = "";
         for (int i = 0; i < arr.Length; i++)
@@ -268,5 +274,6 @@ public class Tools : MonoBehaviour
             }
         }
     }
+
 
 }
