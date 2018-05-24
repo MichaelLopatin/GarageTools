@@ -2,10 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum SwipeDirection
+{
+    up,
+    right,
+    down,
+    left
+}
+
 public class MouseController : MonoBehaviour
 {
+    public delegate void SelectCell(int cellID);
+    public static event SelectCell SelectCellEvent;
+    public delegate void DeselectCell(int cellID);
+    public static event DeselectCell DeselectCellEvent;
+    public delegate void Swipe(int cellID, SwipeDirection swipeDirection);
+    public static event Swipe SwipeEvent;
+
     private Vector3 mousePosInWorld;
-//    private Vector3 mousePosInScreen;
+    //    private Vector3 mousePosInScreen;
     [SerializeField] private Camera camera;
 
     private float curentUnitScale;
@@ -16,13 +31,23 @@ public class MouseController : MonoBehaviour
 
 
     private float percentageOfUnitForSwipe = 0.3f;
- private float swipeLaunchDistance = 1f;
+    private float swipeLaunchDistance = 1f;
     private float deltaX;
     private float deltaY;
-    private bool isMouseButtonDown=false;
-    private bool isSwiping=false;
+    [SerializeField] private bool isMouseButtonDown = false;
+    [SerializeField] private bool isSwiping = false;
+    [SerializeField] private SwipeDirection swipeDirection;
 
-    private int selectedСellID;
+    [SerializeField] private int selectedСellID = -1;
+    [SerializeField] private int lastSelectedСellID = -1;
+    [SerializeField] private bool haveSelectedCell = false;
+    [SerializeField] private bool justSelectedCell = false;
+
+    private float borderTop;
+    private float borderRight;
+    private float borderBottom;
+    private float borderLeft;
+
 
     private float[,,] cellsXYCoordinates;
 
@@ -34,14 +59,12 @@ public class MouseController : MonoBehaviour
         y = 2
     }
 
-    private void Awake()
-    {
-
-    }
     private void OnEnable()
     {
         Field.ChangeCellsCoordinatesEvent += SetCellsXYCoordinates;
         Field.ChangeFieldParametersEvent += SetFieldParameters;
+
+        StartCoroutine(SetBorders());
     }
     private void OnDisable()
     {
@@ -49,45 +72,88 @@ public class MouseController : MonoBehaviour
         Field.ChangeFieldParametersEvent -= SetFieldParameters;
     }
 
-    private void Start()
-    {
 
-    }
     private void Update()
     {
+
         if (isMouseButtonDown && !isSwiping)
         {
             DetermineSwipe();
         }
-
-        if (Input.GetMouseButtonDown(1))
+        if (isSwiping && (haveSelectedCell || justSelectedCell))
         {
-            PrintField(cellsXYCoordinates, curentFieldWidth, curentFieldHeight, 2);
+            if (DeselectCellEvent != null)
+            {
+                haveSelectedCell = false;
+                justSelectedCell = false;
+                lastSelectedСellID = selectedСellID;
+                DeselectCellEvent(selectedСellID);
+            }
         }
+
         if (Input.GetMouseButtonDown(0))
         {
-            if (!isSwiping)
+            mousePosInWorld = camera.ScreenToWorldPoint(Input.mousePosition);
+            if ((mousePosInWorld.x >= borderLeft && mousePosInWorld.x <= borderRight) &&
+    (mousePosInWorld.y >= borderBottom && mousePosInWorld.y <= borderTop))
             {
-           mousePosInWorld = camera.ScreenToWorldPoint(Input.mousePosition);
-            selectedСellID = SearchCellID(mousePosInWorld);
-            isMouseButtonDown = true;
-                // событие выделить клетку с ID selectedСellID
+
+                if (!isSwiping)
+                {
+                    lastSelectedСellID = selectedСellID;
+                    selectedСellID = SearchCellID(mousePosInWorld);
+                    isMouseButtonDown = true;
+                    if (haveSelectedCell && lastSelectedСellID != selectedСellID)
+                    {
+                        if (DeselectCellEvent != null)
+                        {
+                            haveSelectedCell = false;
+                            DeselectCellEvent(lastSelectedСellID);
+                        }
+                    }
+                    if (!haveSelectedCell)
+                    {
+                        if (SelectCellEvent != null)
+                        {
+                            justSelectedCell = true;
+                            SelectCellEvent(selectedСellID);
+                        }
+                    }
+                }
             }
-
-
-
         }
+
         if (Input.GetMouseButtonUp(0))
         {
             isMouseButtonDown = false;
+            if (justSelectedCell)
+            {
+                justSelectedCell = false;
+                haveSelectedCell = true;
+            }
+            else if (haveSelectedCell)
+            {
+                haveSelectedCell = false;
+                if (DeselectCellEvent != null)
+                {
+                    DeselectCellEvent(selectedСellID);
+                }
+            }
+            if (isSwiping)
+            {
+                isSwiping = false;
+            }
         }
+        //if (Input.GetMouseButtonDown(1))
+        //{
+        //    PrintField(cellsXYCoordinates, curentFieldWidth, curentFieldHeight, 2);
+        //}
     }
-
 
     private void DetermineSwipe()
     {
-        deltaX = mousePosInWorld.x - camera.ScreenToWorldPoint(Input.mousePosition).x;
-        deltaY = mousePosInWorld.y - camera.ScreenToWorldPoint(Input.mousePosition).y;
+        deltaX = camera.ScreenToWorldPoint(Input.mousePosition).x - mousePosInWorld.x;
+        deltaY = camera.ScreenToWorldPoint(Input.mousePosition).y - mousePosInWorld.y;
         if (Mathf.Abs(deltaX) > swipeLaunchDistance || Mathf.Abs(deltaY) > swipeLaunchDistance)
         {
             isSwiping = true;
@@ -97,14 +163,29 @@ public class MouseController : MonoBehaviour
                 {
                     if (selectedСellID % curentFieldWidth != 0)
                     {
-                        //новое положение  ID-1
+                        swipeDirection = SwipeDirection.left;
+                        if (SwipeEvent != null)
+                        {
+                            SwipeEvent(selectedСellID, SwipeDirection.left);
+                        }
+
+                        //новое положение newID = ID-1
+                        //событие другую клетку поставить на место этой клетки
+                        // Event(newID, ID);
                     }
                 }
                 else
                 {
-                    if (selectedСellID % curentFieldWidth != curentFieldWidth-1)
+                    if (selectedСellID % curentFieldWidth != curentFieldWidth - 1)
                     {
-                    //новое положение  ID+1
+                        swipeDirection = SwipeDirection.right;
+                        if (SwipeEvent != null)
+                        {
+                            SwipeEvent(selectedСellID, SwipeDirection.right);
+                        }
+                        //новое положение  ID+1
+                        //событие другую клетку поставить на место этой клетки
+                        // Event(newID, ID);
                     }
 
                 }
@@ -113,16 +194,22 @@ public class MouseController : MonoBehaviour
             {
                 if (deltaY > 0)
                 {
+                    swipeDirection = SwipeDirection.up;
                     if (selectedСellID > curentFieldWidth - 1)
                     {
                         //новое положение  ID-curentFieldWidth
+                        //событие другую клетку поставить на место этой клетки
+                        // Event(newID, ID);
                     }
                 }
                 else
                 {
                     if (selectedСellID < (curentFieldWidth * (curentFieldHeight - 1) - 1))
                     {
+                        swipeDirection = SwipeDirection.down;
                         //новое положение  ID+curentFieldWidth
+                        //событие другую клетку поставить на место этой клетки
+                        // Event(newID, ID);
                     }
                 }
             }
@@ -173,7 +260,7 @@ public class MouseController : MonoBehaviour
             row = BinarySearchY(0, (int)(curentFieldHeight * 0.5f) + 1, curentFieldHeight - 1, mousePosInWorld.y);
         }
 
-        return (int)cellsXYCoordinates[row, column,(int)Cell.id];
+        return (int)cellsXYCoordinates[row, column, (int)Cell.id];
     }
 
     private int BinarySearchX(int left, int middle, int right, float number)
@@ -221,9 +308,18 @@ public class MouseController : MonoBehaviour
             {
                 s = s + field[i, j, k].ToString() + " ";
             }
-
             s = s + "\n";
         }
         print(s);
+    }
+
+
+    private IEnumerator SetBorders()
+    {
+        yield return null;
+        borderTop = cellsXYCoordinates[0, 0, (int)Cell.y] + curentUnitScale * 0.5f;
+        borderRight = cellsXYCoordinates[curentFieldHeight - 1, curentFieldWidth - 1, (int)Cell.x] + curentUnitScale * 0.5f;
+        borderBottom = cellsXYCoordinates[curentFieldHeight - 1, curentFieldWidth - 1, (int)Cell.y] - curentUnitScale * 0.5f;
+        borderLeft = cellsXYCoordinates[0, 0, (int)Cell.x] - curentUnitScale * 0.5f;
     }
 }

@@ -5,6 +5,14 @@ using UnityEngine;
 public class ToolInfo : MonoBehaviour
 {
     private int cellID = -1;
+  //  private ToolType type;
+
+
+    private void DeactivateTool(int id)
+    {
+
+    }
+
 
     public int CellID
     {
@@ -17,6 +25,17 @@ public class ToolInfo : MonoBehaviour
             cellID = value;
         }
     }
+    //private ToolType Type
+    //{
+    //    get
+    //    {
+    //        return type;
+    //    }
+    //    set
+    //    {
+    //        type = value;
+    //    }
+    //}
 }
 
 

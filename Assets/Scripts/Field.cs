@@ -52,6 +52,10 @@ public class Field : MonoBehaviour
     {
         SettingFieldParameters();
     }
+    private void OnEnable()
+    {
+        
+    }
 
     private void Start()
     {

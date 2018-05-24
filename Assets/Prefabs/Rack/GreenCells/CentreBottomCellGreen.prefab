@@ -20,6 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4083634745880926}
   - component: {fileID: 212638215707475330}
+  - component: {fileID: 114688032979718926}
   m_Layer: 0
   m_Name: CentreBottomCellGreen
   m_TagString: Untagged
@@ -40,6 +41,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114688032979718926
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1691133680363164}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f256bc7ea1dd2a47837619c986697ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cellID: 0
 --- !u!212 &212638215707475330
 SpriteRenderer:
   m_ObjectHideFlags: 1
