@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
-public class Tools : MonoBehaviour
+public class ToolsAtStart : MonoBehaviour
 {
-    public delegate void ChangeGameField(int[,,] cellsXYCoordinates);
+    public delegate void ChangeGameField(int[,,] gameField);
     public static event ChangeGameField ChangeGameFieldEvent;
 
 
@@ -81,7 +80,7 @@ public class Tools : MonoBehaviour
         }
         PrintField(gameField, curentFieldWidth, curentFieldHeight);
         CheckAndRemoveMatchesInStart(ref gameField, toolTypesNumber, typesSingleToolsQuantity, width, height);
-        if(ChangeGameFieldEvent!=null)
+        if (ChangeGameFieldEvent != null)
         {
             ChangeGameFieldEvent(gameField);
         }
@@ -264,7 +263,7 @@ public class Tools : MonoBehaviour
             for (int j = 0; j < height; j++)
             {
                 tool = toolsReservedListOfStacks[gameField[i, j, (int)Cell.toolsType]].Pop();
-                tool.GetComponent<ToolInfo>().CellID = gameField[i, j, (int)Cell.id];
+                tool.GetComponent<Tool>().CellID = gameField[i, j, (int)Cell.id];
                 curentToolPosition.x = toolsXYCoordinates[i, j, (int)Cell.x];
                 curentToolPosition.y = toolsXYCoordinates[i, j, (int)Cell.y];
                 tool.transform.position = curentToolPosition;

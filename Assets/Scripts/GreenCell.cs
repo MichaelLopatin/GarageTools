@@ -21,15 +21,14 @@ public class GreenCell : MonoBehaviour
     private void OnEnable()
     {
         Field.ChangeCellsCoordinatesEvent += SetCellsXYCoordinates;
-        MouseController.SelectCellEvent += SelectCell;
-        MouseController.DeselectCellEvent += DeselectCell;
+        //MouseController.SelectCellEvent += SelectCell;
+        //MouseController.DeselectCellEvent += DeselectCell;
 
         cellTransform = this.transform;
         basicPosition = cellTransform.position;
         selectedPosition = basicPosition + new Vector3(0, 0, -2);
         isSelected = false;
         StartCoroutine(SetCellID());
-
     }
 
     private void OnDisable()
@@ -39,22 +38,22 @@ public class GreenCell : MonoBehaviour
     }
 
 
-    private void SelectCell(int id)
-    {
-        if (CellID == id)
-        {
-            cellTransform.position = selectedPosition;
-            isSelected = true;
-        }
-    }
-    private void DeselectCell(int id)
-    {
-        if (CellID == id)
-        {
-            cellTransform.position = basicPosition;
-            isSelected = false;
-        }
-    }
+    //private void SelectCell(int selectedCellID, int lastSelectedСellID)
+    //{
+    //    if (CellID == selectedCellID)
+    //    {
+    //        cellTransform.position = selectedPosition;
+    //        isSelected = true;
+    //    }
+    //}
+    //private void DeselectCell(int id)
+    //{
+    //    if (CellID == id)
+    //    {
+    //        cellTransform.position = basicPosition;
+    //        isSelected = false;
+    //    }
+    //}
 
     //private void SelectOrDeselectCell(int id)
     //{

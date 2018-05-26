@@ -23,6 +23,7 @@ public class YellowCell : MonoBehaviour
         Field.ChangeCellsCoordinatesEvent += SetCellsXYCoordinates;
         MouseController.SelectCellEvent += SelectCell;
         MouseController.DeselectCellEvent += DeselectCell;
+        Tool.DeselectCellEvent += DeselectCell;
 
         cellTransform = this.transform;
         basicPosition = cellTransform.position;
@@ -37,23 +38,27 @@ public class YellowCell : MonoBehaviour
         Field.ChangeCellsCoordinatesEvent -= SetCellsXYCoordinates;
         MouseController.SelectCellEvent -= SelectCell;
         MouseController.DeselectCellEvent -= DeselectCell;
+        Tool.DeselectCellEvent -= DeselectCell;
     }
 
 
-    private void SelectCell(int id)
+    private void SelectCell(int selectedCellID, int lastSelectedСellID)
     {
-        if (CellID == id)
+        if (CellID == selectedCellID)
         {
                 cellTransform.position = selectedPosition;
                 isSelected = true;
+            print("selectedPosition " + selectedPosition);
         }
     }
     private void DeselectCell(int id)
     {
         if (CellID == id)
         {
+            print("deselect id = " + id);
             cellTransform.position = basicPosition;
             isSelected = false;
+            print("basicPosition " + basicPosition);
         }
     }
 

@@ -20,7 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4239653562671466}
   - component: {fileID: 212817808594017788}
-  - component: {fileID: 114466554596027864}
+  - component: {fileID: 114955110141428456}
   m_Layer: 0
   m_Name: measureInstrumentGroup
   m_TagString: Untagged
@@ -41,7 +41,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114466554596027864
+--- !u!114 &114955110141428456
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -49,7 +49,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1576904837903788}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 19eb7e7c32f03d7489bd3c629597bc63, type: 3}
+  m_Script: {fileID: 11500000, guid: 503da23a3574eb740b3eeb6428fbf56b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!212 &212817808594017788

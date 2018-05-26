@@ -12,7 +12,7 @@ public enum SwipeDirection
 
 public class MouseController : MonoBehaviour
 {
-    public delegate void SelectCell(int cellID);
+    public delegate void SelectCell(int selectedSellID, int lastSelectedСellID);
     public static event SelectCell SelectCellEvent;
     public delegate void DeselectCell(int cellID);
     public static event DeselectCell DeselectCellEvent;
@@ -63,6 +63,7 @@ public class MouseController : MonoBehaviour
     {
         Field.ChangeCellsCoordinatesEvent += SetCellsXYCoordinates;
         Field.ChangeFieldParametersEvent += SetFieldParameters;
+        Tool.DeselectCellEvent += CleanSelectedFlags;
 
         StartCoroutine(SetBorders());
     }
@@ -70,6 +71,7 @@ public class MouseController : MonoBehaviour
     {
         Field.ChangeCellsCoordinatesEvent -= SetCellsXYCoordinates;
         Field.ChangeFieldParametersEvent -= SetFieldParameters;
+        Tool.DeselectCellEvent -= CleanSelectedFlags;
     }
 
 
@@ -78,16 +80,17 @@ public class MouseController : MonoBehaviour
 
         if (isMouseButtonDown && !isSwiping)
         {
-            DetermineSwipe();
+            DetermineSwipe(selectedСellID);
         }
         if (isSwiping && (haveSelectedCell || justSelectedCell))
         {
             if (DeselectCellEvent != null)
             {
+                DeselectCellEvent(selectedСellID);
+                selectedСellID = -1;
+                lastSelectedСellID = -1;
                 haveSelectedCell = false;
                 justSelectedCell = false;
-                lastSelectedСellID = selectedСellID;
-                DeselectCellEvent(selectedСellID);
             }
         }
 
@@ -116,10 +119,21 @@ public class MouseController : MonoBehaviour
                         if (SelectCellEvent != null)
                         {
                             justSelectedCell = true;
-                            SelectCellEvent(selectedСellID);
+                            SelectCellEvent(selectedСellID, lastSelectedСellID);
                         }
                     }
                 }
+            }
+            else
+            {
+                if (DeselectCellEvent != null)
+                {
+                    DeselectCellEvent(selectedСellID);
+                }
+                selectedСellID = -1;
+                lastSelectedСellID = -1;
+                haveSelectedCell = false;
+                justSelectedCell = false;
             }
         }
 
@@ -143,6 +157,7 @@ public class MouseController : MonoBehaviour
             {
                 isSwiping = false;
             }
+
         }
         //if (Input.GetMouseButtonDown(1))
         //{
@@ -150,7 +165,13 @@ public class MouseController : MonoBehaviour
         //}
     }
 
-    private void DetermineSwipe()
+    private void CleanSelectedFlags(int id)
+    {
+        justSelectedCell = false;
+        haveSelectedCell = false;
+        selectedСellID = -1;
+    }
+    private void DetermineSwipe(int swipeCellID)
     {
         deltaX = camera.ScreenToWorldPoint(Input.mousePosition).x - mousePosInWorld.x;
         deltaY = camera.ScreenToWorldPoint(Input.mousePosition).y - mousePosInWorld.y;
@@ -161,55 +182,63 @@ public class MouseController : MonoBehaviour
             {
                 if (deltaX < 0)
                 {
-                    if (selectedСellID % curentFieldWidth != 0)
+                    if (swipeCellID % curentFieldWidth != 0)
                     {
                         swipeDirection = SwipeDirection.left;
                         if (SwipeEvent != null)
                         {
-                            SwipeEvent(selectedСellID, SwipeDirection.left);
+                            SwipeEvent(swipeCellID, swipeDirection);
+                            //новое положение newID = ID-1
+                            //событие другую клетку поставить на место этой клетки
+                            // Event(newID, ID);
                         }
-
-                        //новое положение newID = ID-1
-                        //событие другую клетку поставить на место этой клетки
-                        // Event(newID, ID);
                     }
                 }
                 else
                 {
-                    if (selectedСellID % curentFieldWidth != curentFieldWidth - 1)
+                    if (swipeCellID % curentFieldWidth != curentFieldWidth - 1)
                     {
                         swipeDirection = SwipeDirection.right;
                         if (SwipeEvent != null)
                         {
-                            SwipeEvent(selectedСellID, SwipeDirection.right);
+                            SwipeEvent(swipeCellID, swipeDirection);
+                            //новое положение  ID+1
+                            //событие другую клетку поставить на место этой клетки
+                            // Event(newID, ID);
                         }
-                        //новое положение  ID+1
-                        //событие другую клетку поставить на место этой клетки
-                        // Event(newID, ID);
                     }
-
                 }
             }
             else
             {
                 if (deltaY > 0)
                 {
-                    swipeDirection = SwipeDirection.up;
-                    if (selectedСellID > curentFieldWidth - 1)
+                    
+                    if (swipeCellID > curentFieldWidth - 1)
                     {
+                        swipeDirection = SwipeDirection.up;
+                        if (SwipeEvent != null)
+                        {
+                            SwipeEvent(swipeCellID, swipeDirection);
                         //новое положение  ID-curentFieldWidth
                         //событие другую клетку поставить на место этой клетки
                         // Event(newID, ID);
+                        }
+
                     }
                 }
                 else
                 {
-                    if (selectedСellID < (curentFieldWidth * (curentFieldHeight - 1) - 1))
+                    if (swipeCellID < (curentFieldWidth * (curentFieldHeight - 1) - 1))
                     {
                         swipeDirection = SwipeDirection.down;
+                        if (SwipeEvent != null)
+                        {
+                            SwipeEvent(swipeCellID, swipeDirection);
                         //новое положение  ID+curentFieldWidth
                         //событие другую клетку поставить на место этой клетки
                         // Event(newID, ID);
+                        }
                     }
                 }
             }

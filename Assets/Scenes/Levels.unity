@@ -314,11 +314,11 @@ GameObject:
   - component: {fileID: 483578598}
   - component: {fileID: 483578599}
   - component: {fileID: 483578600}
-  - component: {fileID: 483578602}
   - component: {fileID: 483578601}
   - component: {fileID: 483578603}
   - component: {fileID: 483578604}
   - component: {fileID: 483578605}
+  - component: {fileID: 483578602}
   m_Layer: 0
   m_Name: GameScripts
   m_TagString: Untagged
@@ -444,7 +444,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 483578597}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: effe0c692e541a642b7d79718967c263, type: 3}
+  m_Script: {fileID: 11500000, guid: c5eb2ce2af7839c448f1f3e940311260, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &483578603
@@ -482,6 +482,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   camera: {fileID: 1129904278}
+  isMouseButtonDown: 0
+  isSwiping: 0
+  swipeDirection: 0
+  "selected\u0421ellID": -1
+  "lastSelected\u0421ellID": -1
+  haveSelectedCell: 0
+  justSelectedCell: 0
 --- !u!1 &552181931
 GameObject:
   m_ObjectHideFlags: 0
