@@ -4,36 +4,24 @@ using UnityEngine;
 
 public class GreenCell : MonoBehaviour
 {
-    private enum CellInfo
-    {
-        id = 0,
-        x,
-        y
-    }
-
     private Transform cellTransform;
     private Vector3 basicPosition;
     private Vector3 selectedPosition;
     [SerializeField] private int cellID;
-    private float[,,] cellsXYCoordinates;
-    private bool isSelected;
 
     private void OnEnable()
     {
-        Field.ChangeCellsCoordinatesEvent += SetCellsXYCoordinates;
-        //MouseController.SelectCellEvent += SelectCell;
+           //MouseController.SelectCellEvent += SelectCell;
         //MouseController.DeselectCellEvent += DeselectCell;
 
         cellTransform = this.transform;
         basicPosition = cellTransform.position;
         selectedPosition = basicPosition + new Vector3(0, 0, -2);
-        isSelected = false;
         StartCoroutine(SetCellID());
     }
 
     private void OnDisable()
     {
-        Field.ChangeCellsCoordinatesEvent -= SetCellsXYCoordinates;
 
     }
 
@@ -55,42 +43,16 @@ public class GreenCell : MonoBehaviour
     //    }
     //}
 
-    //private void SelectOrDeselectCell(int id)
-    //{
-    //    if(CellID==id)
-    //    {
-    //        if(isSelected)
-    //        {
-    //            cellTransform.position = basicPosition;
-    //            isSelected = false;
-    //        }
-    //        else
-    //        {
-    //            cellTransform.position = selectedPosition;
-    //            isSelected = true;
-    //        }
-    //    }
-    //}
-
-    private void SetCellsXYCoordinates(float[,,] coordinates)
-    {
-        cellsXYCoordinates = (float[,,])coordinates.Clone();
-    }
-
+  
     private IEnumerator SetCellID()
     {
         yield return null;
-        int rowLength = cellsXYCoordinates.GetLength(0);
-        int columnLength = cellsXYCoordinates.GetLength(1);
-        for (int i = 0; i < rowLength; i++)
+        for (int i = 0; i < Field.FieldSize; i++)
         {
-            for (int j = 0; j < columnLength; j++)
+            if (basicPosition.x == Field.cellsXYCoord[i,(int)Cell.x] && basicPosition.y == Field.cellsXYCoord[i, (int)Cell.y])
             {
-                if (basicPosition.x == cellsXYCoordinates[i, j, (int)CellInfo.x] && basicPosition.y == cellsXYCoordinates[i, j, (int)CellInfo.y])
-                {
-                    CellID = (int)cellsXYCoordinates[i, j, (int)CellInfo.id];
-                    yield break;
-                }
+                CellID = i;
+                yield break;
             }
         }
     }

@@ -20,15 +20,7 @@ public class MouseController : MonoBehaviour
     public static event Swipe SwipeEvent;
 
     private Vector3 mousePosInWorld;
-    //    private Vector3 mousePosInScreen;
     [SerializeField] private Camera camera;
-
-    private float curentUnitScale;
-    private int curentFieldWidth = 0;
-    private int curentFieldHeight = 0;
-    //private int centreWidthtIndex = 0;
-    //private int centreHeightIndex = 0;
-
 
     private float percentageOfUnitForSwipe = 0.3f;
     private float swipeLaunchDistance = 1f;
@@ -48,29 +40,15 @@ public class MouseController : MonoBehaviour
     private float borderBottom;
     private float borderLeft;
 
-
-    private float[,,] cellsXYCoordinates;
-
-    private enum Cell
-    {
-        id = 0,
-        toolsType = 1,
-        x = 1,
-        y = 2
-    }
-
     private void OnEnable()
     {
-        Field.ChangeCellsCoordinatesEvent += SetCellsXYCoordinates;
-        Field.ChangeFieldParametersEvent += SetFieldParameters;
         Tool.DeselectCellEvent += CleanSelectedFlags;
 
         StartCoroutine(SetBorders());
+        swipeLaunchDistance = percentageOfUnitForSwipe * Field.CurentUnitScale;
     }
     private void OnDisable()
     {
-        Field.ChangeCellsCoordinatesEvent -= SetCellsXYCoordinates;
-        Field.ChangeFieldParametersEvent -= SetFieldParameters;
         Tool.DeselectCellEvent -= CleanSelectedFlags;
     }
 
@@ -80,7 +58,10 @@ public class MouseController : MonoBehaviour
 
         if (isMouseButtonDown && !isSwiping)
         {
-            DetermineSwipe(selectedСellID);
+            if (selectedСellID >= 0)
+            {
+                DetermineSwipe(selectedСellID);
+            }
         }
         if (isSwiping && (haveSelectedCell || justSelectedCell))
         {
@@ -161,7 +142,7 @@ public class MouseController : MonoBehaviour
         }
         //if (Input.GetMouseButtonDown(1))
         //{
-        //    PrintField(cellsXYCoordinates, curentFieldWidth, curentFieldHeight, 2);
+        //    PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
         //}
     }
 
@@ -182,7 +163,7 @@ public class MouseController : MonoBehaviour
             {
                 if (deltaX < 0)
                 {
-                    if (swipeCellID % curentFieldWidth != 0)
+                    if (swipeCellID % Field.CurentFieldWidth != 0)
                     {
                         swipeDirection = SwipeDirection.left;
                         if (SwipeEvent != null)
@@ -196,7 +177,7 @@ public class MouseController : MonoBehaviour
                 }
                 else
                 {
-                    if (swipeCellID % curentFieldWidth != curentFieldWidth - 1)
+                    if (swipeCellID % Field.CurentFieldWidth != Field.CurentFieldWidth - 1)
                     {
                         swipeDirection = SwipeDirection.right;
                         if (SwipeEvent != null)
@@ -213,31 +194,31 @@ public class MouseController : MonoBehaviour
             {
                 if (deltaY > 0)
                 {
-                    
-                    if (swipeCellID > curentFieldWidth - 1)
+
+                    if (swipeCellID > Field.CurentFieldWidth - 1)
                     {
                         swipeDirection = SwipeDirection.up;
                         if (SwipeEvent != null)
                         {
                             SwipeEvent(swipeCellID, swipeDirection);
-                        //новое положение  ID-curentFieldWidth
-                        //событие другую клетку поставить на место этой клетки
-                        // Event(newID, ID);
+                            //новое положение  ID-Field.CurentFieldWidth
+                            //событие другую клетку поставить на место этой клетки
+                            // Event(newID, ID);
                         }
 
                     }
                 }
                 else
                 {
-                    if (swipeCellID < (curentFieldWidth * (curentFieldHeight - 1) - 1))
+                    if (swipeCellID < (Field.CurentFieldWidth * (Field.CurentFieldHeight - 1) - 1))
                     {
                         swipeDirection = SwipeDirection.down;
                         if (SwipeEvent != null)
                         {
                             SwipeEvent(swipeCellID, swipeDirection);
-                        //новое положение  ID+curentFieldWidth
-                        //событие другую клетку поставить на место этой клетки
-                        // Event(newID, ID);
+                            //новое положение  ID+Field.CurentFieldWidth
+                            //событие другую клетку поставить на место этой клетки
+                            // Event(newID, ID);
                         }
                     }
                 }
@@ -245,97 +226,58 @@ public class MouseController : MonoBehaviour
         }
     }
 
-    private void SetCellsXYCoordinates(float[,,] coordinates)
-    {
-        cellsXYCoordinates = (float[,,])coordinates.Clone();
-    }
-
-    private void SetFieldParameters(int width, int height, float scale)
-    {
-        curentFieldWidth = width;
-        curentFieldHeight = height;
-        curentUnitScale = scale;
-        swipeLaunchDistance = percentageOfUnitForSwipe * curentUnitScale;
-    }
-
     private int SearchCellID(Vector3 mousePosInWorld)
     {
-        int column;
-        int row;
-
-        if (mousePosInWorld.x <= cellsXYCoordinates[0, 0, (int)Cell.x] + curentUnitScale * 0.5f)
+        float[] xCoord = new float[Field.CurentFieldWidth];
+        float[] yCoord = new float[Field.CurentFieldHeight];
+        for (int i = 0; i < Field.CurentFieldWidth; i++)
         {
-            column = 0;
+            xCoord[i] = Field.cellsXYCoord[i, (int)Cell.x];
         }
-        else if (mousePosInWorld.x >= cellsXYCoordinates[0, curentFieldWidth - 1, (int)Cell.x] - curentUnitScale * 0.5f)
+        for (int i = 0; i < Field.CurentFieldHeight; i++)
         {
-            column = curentFieldWidth - 1;
+            yCoord[i] = Field.cellsXYCoord[(Field.CurentFieldHeight - i - 1) * Field.CurentFieldHeight, (int)Cell.y];
         }
-        else
-        {
-            column = BinarySearchX(0, (int)(curentFieldWidth * 0.5f) + 1, curentFieldWidth - 1, mousePosInWorld.x);
-        }
-
-        if (mousePosInWorld.y >= (cellsXYCoordinates[0, 0, (int)Cell.y] - curentUnitScale * 0.5f))
-        {
-            row = 0;
-        }
-        else if (mousePosInWorld.y <= cellsXYCoordinates[curentFieldHeight - 1, 0, (int)Cell.y] + curentUnitScale * 0.5f)
-        {
-            row = curentFieldHeight - 1;
-        }
-        else
-        {
-            row = BinarySearchY(0, (int)(curentFieldHeight * 0.5f) + 1, curentFieldHeight - 1, mousePosInWorld.y);
-        }
-
-        return (int)cellsXYCoordinates[row, column, (int)Cell.id];
+        int row = Field.CurentFieldHeight - 1 - BinarySearch(yCoord, 0, (int)(Field.CurentFieldWidth * 0.5f), Field.CurentFieldWidth - 1, mousePosInWorld.y);
+        int column = BinarySearch(xCoord, 0, (int)(Field.CurentFieldHeight * 0.5f), Field.CurentFieldHeight - 1, mousePosInWorld.x);
+        return (row * Field.CurentFieldWidth + column);
     }
 
-    private int BinarySearchX(int left, int middle, int right, float number)
+    private int BinarySearch(float[] arr, int left, int middle, int right, float coord)
     {
-        if ((number >= cellsXYCoordinates[0, middle, (int)Cell.x] - curentUnitScale * 0.5f) &&
-            (number <= cellsXYCoordinates[0, middle, (int)Cell.x] + curentUnitScale * 0.5f))
+
+        if ((coord >= arr[middle] - Field.CurentUnitScale * 0.5f) &&
+            (coord <= arr[middle] + Field.CurentUnitScale * 0.5f))
         {
             return middle;
         }
-
-        else if (number < cellsXYCoordinates[0, middle, (int)Cell.x])
+        else if (coord < arr[left] + Field.CurentUnitScale * 0.5f)
         {
-            return BinarySearchX(left, left + (int)((middle - left) * 0.5f), middle, number);
+            return left;
+        }
+        else if (coord > arr[right] - Field.CurentUnitScale * 0.5f)
+        {
+            return right;
+        }
+        else if (coord < arr[middle])
+        {
+            return BinarySearch(arr, left, left + (int)((middle - left) * 0.5f), middle, coord);
         }
         else
         {
-            return BinarySearchX(middle, middle + (int)((right - middle) * 0.5f), right, number);
+            return BinarySearch(arr, middle, middle + (int)((right - middle) * 0.5f), right, coord);
         }
     }
 
 
-    private int BinarySearchY(int left, int middle, int right, float number)
-    {
-        if ((number >= cellsXYCoordinates[middle, 0, (int)Cell.y] - curentUnitScale * 0.5f) &&
-                (number <= cellsXYCoordinates[middle, 0, (int)Cell.y] + curentUnitScale * 0.5f))
-        {
-            return middle;
-        }
-        else if (number > cellsXYCoordinates[middle, 0, (int)Cell.y])
-        {
-            return BinarySearchY(left, left + (int)((middle - left) * 0.5f), middle, number);
-        }
-        else
-        {
-            return BinarySearchY(middle, middle + (int)((right - middle) * 0.5f), right, number);
-        }
-    }
-
-    private void PrintField(float[,,] field, int width, int height, int k)
+    private void PrintField(int[] field, int width, int height)
     {
         string s = "";
-        for (int i = 0; i < width; i++)
+        for (int i = 0, k = 0; i < width; i++)
         {
-            for (int j = 0; j < height; j++)
+            for (int j = 0; j < height; j++, k++)
             {
-                s = s + field[i, j, k].ToString() + " ";
+                s = s + field[k].ToString() + " ";
             }
             s = s + "\n";
         }
@@ -346,9 +288,9 @@ public class MouseController : MonoBehaviour
     private IEnumerator SetBorders()
     {
         yield return null;
-        borderTop = cellsXYCoordinates[0, 0, (int)Cell.y] + curentUnitScale * 0.5f;
-        borderRight = cellsXYCoordinates[curentFieldHeight - 1, curentFieldWidth - 1, (int)Cell.x] + curentUnitScale * 0.5f;
-        borderBottom = cellsXYCoordinates[curentFieldHeight - 1, curentFieldWidth - 1, (int)Cell.y] - curentUnitScale * 0.5f;
-        borderLeft = cellsXYCoordinates[0, 0, (int)Cell.x] - curentUnitScale * 0.5f;
+        borderTop = Field.cellsXYCoord[0, (int)Cell.y] + Field.CurentUnitScale * 0.5f;
+        borderRight = Field.cellsXYCoord[Field.FieldSize - 1, (int)Cell.x] + Field.CurentUnitScale * 0.5f;
+        borderBottom = Field.cellsXYCoord[Field.FieldSize - 1, (int)Cell.y] - Field.CurentUnitScale * 0.5f;
+        borderLeft = Field.cellsXYCoord[0, (int)Cell.x] - Field.CurentUnitScale * 0.5f;
     }
 }

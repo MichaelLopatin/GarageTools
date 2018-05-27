@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class GameIndicators : MonoBehaviour
 {
-    public delegate void ChangeLevel(int level); // не подписаны
-    public static event ChangeLevel ChangeLevelEvent;
+    //public delegate void ChangeLevel(int level); // не подписаны
+    //public static event ChangeLevel ChangeLevelEvent;
 
-    [SerializeField]private int level=1;
-    private int lastLevel=1;
+    public static int level=1;
+    private int lastLevel= level;
 
     private int points = 0;
 
@@ -18,14 +18,14 @@ public class GameIndicators : MonoBehaviour
 
     private void Update()
     {
-        if(lastLevel!=level)
-        {
-            if(ChangeLevelEvent!=null)
-            {
-                ChangeLevelEvent(level);
-            }
-            lastLevel = level;
-        }
+        //if(lastLevel!=level)
+        //{
+        //    if(ChangeLevelEvent!=null)
+        //    {
+        //        ChangeLevelEvent(level);
+        //    }
+        //    lastLevel = level;
+        //}
     }
 
 }

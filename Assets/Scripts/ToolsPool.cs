@@ -20,15 +20,12 @@ public enum ToolType
     quantity
 }
 
-
 public class ToolsPool : MonoBehaviour
 {
-
     [SerializeField] private GameObject[] toolTypes = new GameObject[(int)ToolType.quantity];
     [SerializeField] private Transform[] parentTransforms = new Transform[(int)ToolType.quantity];
     private int feildWidth = 16;
     private int feildHieght = 16;
-
 
     public static List<Stack<GameObject>> toolsReservedListOfStacks = new List<Stack<GameObject>>((int)ToolType.quantity);
     public static List<Stack<GameObject>> toolsOnFieldListOfStacks = new List<Stack<GameObject>>((int)ToolType.quantity);

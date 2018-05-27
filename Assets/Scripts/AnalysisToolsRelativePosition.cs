@@ -6,34 +6,14 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
 {
     public delegate void MoveTool(int cellID, int newCellID, float newX, float newY);
     public static event MoveTool MoveToolEvent;
-    //public delegate void DeselectCell(int cellID);
-    //public static event DeselectCell DeselectCellEvent;
+    public delegate void DestroyTool(int cellID, int toolType);
+    public static event DestroyTool DestroyToolEvent;
+    public delegate void CreateToolsGroup(int cellID, ToolType toolType);
+    public static event CreateToolsGroup CreateToolsGroupEvent;
 
+    private static int[] exchangeTools;
 
-    private enum Cell
-    {
-        id = 0,
-        toolsType = 1,
-        isMatch = 1,
-        isTip = 2,
-        x = 1,
-        y = 2,
-        IsNotExchange = 0,
-        isExchange = 1
-    }
-    private int curentFieldWidth = 0;
-    private int curentFieldHeight = 0;
-
-    private int[,,] toolsOnField;
-    private int[,,] cellsAndToolsInfo;
-    private float[,,] toolsXYCoordinates;
-    private int[] exchangeTools;
-
-
-    //   int count = 0;
-    private int toolToChange = 0;
-
-    // задать cellsAndToolsInfo
+    private int[] tipsOnField;
 
     private void Awake()
     {
@@ -41,72 +21,27 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
     }
     private void OnEnable()
     {
-        ToolsAtStart.ChangeGameFieldEvent += SetToolsOnFieldArray;
-        Field.ChangeFieldParametersEvent += SetFieldParameters;
-        Field.ChangeCellsCoordinatesEvent += SetCellsXYCoordinates;
         MouseController.SelectCellEvent += CheckChangeTools;
         MouseController.SwipeEvent += Swipe;
         Tool.ExchangeMarkEvent += ExchangeMark;
+        SetExchangeTools(out exchangeTools);
     }
 
     private void OnDisable()
     {
-        ToolsAtStart.ChangeGameFieldEvent -= SetToolsOnFieldArray;
-        Field.ChangeFieldParametersEvent -= SetFieldParameters;
-        Field.ChangeCellsCoordinatesEvent -= SetCellsXYCoordinates;
         MouseController.SelectCellEvent -= CheckChangeTools;
         Tool.ExchangeMarkEvent -= ExchangeMark;
     }
 
     private void Start()
     {
-        InitializeCellsAndToolsInfo(out cellsAndToolsInfo);
-        FindTipsInField();
-
-        //PrintField(toolsOnField, curentFieldWidth, curentFieldHeight, (int)Cell.toolsType);
-        //PrintField(cellsAndToolsInfo, curentFieldWidth, curentFieldHeight, (int)Cell.toolsType);
-        //PrintField(cellsAndToolsInfo, curentFieldWidth, curentFieldHeight, (int)Cell.isTip);
+        SetExchangeTools(out exchangeTools);
+        FindTipsInField(out tipsOnField);
     }
 
     private void Update()
     {
 
-    }
-
-    private void InitializeCellsAndToolsInfo(out int[,,] cellsAndToolsInfo)
-    {
-        cellsAndToolsInfo = new int[curentFieldWidth, curentFieldHeight, (int)Cell.isTip + 1];
-        for (int i = 0, k = 0; i < curentFieldWidth; i++)
-        {
-            for (int j = 0; j < curentFieldHeight; j++, k++)
-            {
-                cellsAndToolsInfo[i, j, (int)Cell.id] = k;
-                cellsAndToolsInfo[i, j, (int)Cell.isMatch] = -1;
-                cellsAndToolsInfo[i, j, (int)Cell.isTip] = 0;
-            }
-        }
-    }
-
-    private void SetCellsXYCoordinates(float[,,] cellXYCoordinates)
-    {
-        toolsXYCoordinates = (float[,,])cellXYCoordinates.Clone();
-    }
-
-    private void SetToolsOnFieldArray(int[,,] array)
-    {
-        toolsOnField = (int[,,])array.Clone();
-    }
-
-    private void SetFieldParameters(int width, int height, float scale)
-    {
-        curentFieldWidth = width;
-        curentFieldHeight = height;
-        int maxId = width * height - 1;
-        exchangeTools = new int[maxId + 1];
-        for (int i = 0; i < maxId + 1; i++)
-        {
-            exchangeTools[i] = (int)Cell.IsNotExchange;
-        }
     }
 
     private void ExchangeMark(int id, bool isExchange)
@@ -121,49 +56,20 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         }
     }
 
-    private void ChangeToolsOnField(int id, int column, int row, int toolsType) // для подписки на событие изменения ячейки
+    private void SetExchangeTools(out int[] exchangeTools)
     {
-        toolsOnField[column, row, (int)Cell.toolsType] = toolsType;
-    }
-
-    private void CheckMatches(int column, int row)
-    {
-        int targetToolType = toolsOnField[column, row, (int)Cell.toolsType];
-
-        for (int i = column; i >= 0; i--)
+        int fieldSize = Field.FieldSize;
+        exchangeTools = new int[fieldSize];
+        for (int i = 0; i < fieldSize; i++)
         {
-            if (toolsOnField[i, row, (int)Cell.toolsType] == targetToolType)
-            {
-                cellsAndToolsInfo[i, row, (int)Cell.isMatch] = 1;
-            }
-        }
-        for (int i = column; i < curentFieldWidth; i++)
-        {
-            if (toolsOnField[i, row, (int)Cell.toolsType] == targetToolType)
-            {
-                cellsAndToolsInfo[i, row, (int)Cell.isMatch] = 1;
-            }
-
-        }
-        for (int i = row; i >= 0; i--)
-        {
-            if (toolsOnField[column, i, (int)Cell.toolsType] == targetToolType)
-            {
-                cellsAndToolsInfo[column, i, (int)Cell.isMatch] = 1;
-            }
-        }
-        for (int i = row; i < curentFieldHeight; i++)
-        {
-            if (toolsOnField[column, i, (int)Cell.toolsType] == targetToolType)
-            {
-                cellsAndToolsInfo[column, i, (int)Cell.isMatch] = 1;
-            }
+            exchangeTools[i] = (int)Cell.IsNotExchange;
         }
     }
-
-    private void FindTipInCell(int column, int row)
+    private void FindTipInCell(int cellID)
     {
-        int targetToolType = toolsOnField[column, row, (int)Cell.toolsType];
+        int row = (int)(cellID / Field.CurentFieldWidth);
+        int column = cellID - row * Field.CurentFieldWidth;
+        int targetToolType = Field.toolsOnField[cellID];
         // массив с индексами строк и рядов для проверки возможных комбинаций
         const int combinationQuantity = 16;
         const int comparedCellsQuantity = 2;
@@ -176,7 +82,7 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         {
             if (ReturnToolType(column + checkIndex[i, 0], row + checkIndex[i, 2]) == targetToolType && ReturnToolType(column + checkIndex[i, 1], row + checkIndex[i, 3]) == targetToolType)
             {
-                cellsAndToolsInfo[column, row, (int)Cell.isTip] = 1;
+                Field.toolsOnField[cellID] = 1;
                 return;
             }
         }
@@ -184,9 +90,9 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
 
     private int ReturnToolType(int i, int j)
     {
-        if ((i >= 0 && j >= 0) && (i < curentFieldWidth && j < curentFieldHeight))
+        if ((i >= 0 && j >= 0) && (i < Field.CurentFieldWidth && j < Field.CurentFieldHeight))
         {
-            return toolsOnField[i, j, (int)Cell.toolsType];
+            return Field.toolsOnField[(i * Field.CurentFieldWidth + j)];
         }
         else
         {
@@ -194,25 +100,24 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         }
     }
 
-    private void FindTipsInField() // оформить в корутину и запускать по истечении времени
+    private void FindTipsInField(out int[] tipsOnField)
     {
-        for (int i = 0; i < curentFieldWidth; i++)
+        int fieldSize = Field.FieldSize;
+        tipsOnField = new int[fieldSize];
+        for (int i = 0; i < fieldSize; i++)
         {
-            for (int j = 0; j < curentFieldHeight; j++)
-            {
-                FindTipInCell(i, j);
-            }
+            FindTipInCell(i);
         }
     }
 
-    private void PrintField(int[,,] field, int width, int height, int k)
+    private void PrintField(int[] field, int width, int height)
     {
         string s = "";
-        for (int i = 0; i < width; i++)
+        for (int i = 0, k = 0; i < width; i++)
         {
-            for (int j = 0; j < height; j++)
+            for (int j = 0; j < height; j++, k++)
             {
-                s = s + field[i, j, k].ToString() + " ";
+                s = s + field[k].ToString() + " ";
             }
 
             s = s + "\n";
@@ -228,49 +133,20 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
             {
                 int selectedToolType;
                 int lastSelectedToolType;
-                int selectedRow;
-                int selectedColumn;
-                int lastSelectedRow;
-                int lastSelectedColumn;
 
-                selectedRow = selectedSellID / curentFieldHeight;
-                selectedColumn = selectedSellID - selectedRow * curentFieldWidth;
-                //     print(" selectedColumn "+selectedColumn + " selectedRow "+ selectedRow);
-                lastSelectedRow = lastSelectedСellID / curentFieldHeight;
-                lastSelectedColumn = lastSelectedСellID - lastSelectedRow * curentFieldWidth;
-                if (selectedRow == lastSelectedRow)
+                if (selectedSellID - lastSelectedСellID == -1 ||
+                    selectedSellID - lastSelectedСellID == 1 ||
+                    selectedSellID - lastSelectedСellID == -Field.CurentFieldWidth ||
+                    selectedSellID - lastSelectedСellID == Field.CurentFieldWidth)
                 {
-                    if ((selectedColumn - lastSelectedColumn) == 1 || (selectedColumn - lastSelectedColumn) == -1)
+                    if (MoveToolEvent != null)
                     {
-
-                        if (MoveToolEvent != null)
-                        {
-                            MoveToolEvent(lastSelectedСellID, selectedSellID, toolsXYCoordinates[selectedRow, selectedColumn, (int)Cell.x], toolsXYCoordinates[selectedRow, selectedColumn, (int)Cell.y]);
-                            MoveToolEvent(selectedSellID, lastSelectedСellID, toolsXYCoordinates[lastSelectedRow, lastSelectedColumn, (int)Cell.x], toolsXYCoordinates[lastSelectedRow, lastSelectedColumn, (int)Cell.y]);
-                        }
-
-                        selectedToolType = toolsOnField[selectedRow, selectedColumn, (int)Cell.toolsType];
-                        lastSelectedToolType = toolsOnField[lastSelectedRow, lastSelectedColumn, (int)Cell.toolsType];
-                        //  print("selectedToolType "+ selectedToolType);
-                        // тут проверка на совпадения!!!
+                        MoveToolEvent(lastSelectedСellID, selectedSellID, Field.cellsXYCoord[selectedSellID, (int)Cell.x], Field.cellsXYCoord[selectedSellID, (int)Cell.y]);
+                        MoveToolEvent(selectedSellID, lastSelectedСellID, Field.cellsXYCoord[lastSelectedСellID, (int)Cell.x], Field.cellsXYCoord[lastSelectedСellID, (int)Cell.y]);
                     }
-                }
-                else if (selectedColumn == lastSelectedColumn)
-                {
-                    if ((selectedRow - lastSelectedRow) == 1 || (selectedRow - lastSelectedRow) == -1)
-                    {
-
-                        if (MoveToolEvent != null)
-                        {
-                            MoveToolEvent(lastSelectedСellID, selectedSellID, toolsXYCoordinates[selectedRow, selectedColumn, (int)Cell.x], toolsXYCoordinates[selectedRow, selectedColumn, (int)Cell.y]);
-                            MoveToolEvent(selectedSellID, lastSelectedСellID, toolsXYCoordinates[lastSelectedRow, lastSelectedColumn, (int)Cell.x], toolsXYCoordinates[lastSelectedRow, lastSelectedColumn, (int)Cell.y]);
-                        }
-
-                        selectedToolType = toolsOnField[selectedRow, selectedColumn, (int)Cell.toolsType];
-                        lastSelectedToolType = toolsOnField[lastSelectedRow, lastSelectedColumn, (int)Cell.toolsType];
-                        // тут проверка на совпадения!!!
-                        //  print("selectedToolType "+ selectedToolType);
-                    }
+                    selectedToolType = Field.toolsOnField[selectedSellID];
+                    lastSelectedToolType = Field.toolsOnField[lastSelectedСellID];
+                    // тут проверка на совпадения!!!
                 }
             }
         }
@@ -278,21 +154,19 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
 
     private void Swipe(int swipeCellID, SwipeDirection swipeDirection)
     {
-
         if (exchangeTools[swipeCellID] == (int)Cell.IsNotExchange)
         {
             int cellToExchangeID = -1;
-            print("swipeDirection " + swipeDirection);
             switch (swipeDirection)
             {
                 case SwipeDirection.up:
-                    cellToExchangeID = swipeCellID - curentFieldHeight;
+                    cellToExchangeID = swipeCellID - Field.CurentFieldHeight;
                     break;
                 case SwipeDirection.right:
                     cellToExchangeID = swipeCellID + 1;
                     break;
                 case SwipeDirection.down:
-                    cellToExchangeID = swipeCellID + curentFieldHeight;
+                    cellToExchangeID = swipeCellID + Field.CurentFieldHeight;
                     break;
                 case SwipeDirection.left:
                     cellToExchangeID = swipeCellID - 1;
@@ -304,26 +178,150 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
             {
                 int swipeCellToolType;
                 int cellToExchangeToolType;
-                int swipeCellRow;
-                int swipeCellColumn;
-                int cellToExchangeRow;
-                int cellToExchangeColumn;
-                swipeCellRow = swipeCellID / curentFieldHeight;
-                swipeCellColumn = swipeCellID - swipeCellRow * curentFieldWidth;
 
-                cellToExchangeRow = cellToExchangeID / curentFieldHeight;
-                cellToExchangeColumn = cellToExchangeID - cellToExchangeRow * curentFieldWidth;
                 if (MoveToolEvent != null)
                 {
-                    MoveToolEvent(cellToExchangeID, swipeCellID, toolsXYCoordinates[swipeCellRow, swipeCellColumn, (int)Cell.x], toolsXYCoordinates[swipeCellRow, swipeCellColumn, (int)Cell.y]);
-                    MoveToolEvent(swipeCellID, cellToExchangeID, toolsXYCoordinates[cellToExchangeRow, cellToExchangeColumn, (int)Cell.x], toolsXYCoordinates[cellToExchangeRow, cellToExchangeColumn, (int)Cell.y]);
+                    MoveToolEvent(cellToExchangeID, swipeCellID, Field.cellsXYCoord[swipeCellID, (int)Cell.x], Field.cellsXYCoord[swipeCellID, (int)Cell.y]);
+                    MoveToolEvent(swipeCellID, cellToExchangeID, Field.cellsXYCoord[cellToExchangeID, (int)Cell.x], Field.cellsXYCoord[cellToExchangeID, (int)Cell.y]);
                 }
 
-                swipeCellToolType = toolsOnField[swipeCellRow, swipeCellColumn, (int)Cell.toolsType];
-                cellToExchangeToolType = toolsOnField[cellToExchangeRow, cellToExchangeColumn, (int)Cell.toolsType];
-
+                swipeCellToolType = Field.toolsOnField[swipeCellID];
+                cellToExchangeToolType = Field.toolsOnField[cellToExchangeID];
             }
         }
     }
+
+    /*
+    private void CheckMatches(int row, int column, int targetToolType)
+    {
+        int matchInRow = 0;
+        int matchInColumn = 0;
+        int[] matchInRowID = new int[5] { -1, -1, -1, -1, -1 };
+        int[] matchInColumnID = new int[5] { -1, -1, -1, -1, -1 };
+        int j = 0;
+        for (int i = column; i < Field.CurentFieldWidth; i++)
+        {
+        //    print("toolsOnField["+row+", "+i+", (int)Cell.toolsType] " + toolsOnField[row, i, (int)Cell.toolsType]);
+            if (toolsOnField[row, i, (int)Cell.toolsType] == targetToolType)
+            {
+                
+  //              cellsAndToolsInfo[row, i, (int)Cell.isMatch] = 1;
+                matchInRowID[j] = row * Field.CurentFieldWidth + i;
+                j++;
+                    matchInRow++;
+         //       print("matchInRow " + matchInRow + " targetToolType "+ targetToolType+" id "+ matchInRowID[j-1]);
+            }
+            else
+            {
+                break;
+            }
+        }
+        for (int i = column-1; i >=0; i--)
+        {
+        //    print("toolsOnField[" + row + ", " + i + ", (int)Cell.toolsType] " + toolsOnField[row, i, (int)Cell.toolsType]);
+
+            if (toolsOnField[row, i, (int)Cell.toolsType] == targetToolType)
+            {
+   //             cellsAndToolsInfo[row, i, (int)Cell.isMatch] = 1;
+                matchInRowID[j] = row * Field.CurentFieldWidth + i;
+                j++;
+                matchInRow++;
+        //        print("matchInRow " + matchInRow + " targetToolType " + targetToolType + " id " + matchInRowID[j - 1]);
+            }
+            else
+            {
+                break;
+            }
+        }
+        j = 0;
+        for (int i = row; i < Field.CurentFieldHeight; i++)
+        {
+  //          print("toolsOnField["+i+", "+column+", (int)Cell.toolsType] " + toolsOnField[i, column, (int)Cell.toolsType]);
+            if (toolsOnField[i, column, (int)Cell.toolsType] == targetToolType)
+            {
+  //              cellsAndToolsInfo[i, column, (int)Cell.isMatch] = 1;
+                matchInColumnID[j] = i * Field.CurentFieldWidth + column;
+                j++;
+                matchInColumn++;
+        //        print("matchInColumn " + matchInColumn);
+            }
+            else
+            {
+                break;
+            }
+        }
+        for (int i = row-1; i >=0; i--)
+        {
+      //      print("toolsOnField[" + i + ", " + column + ", (int)Cell.toolsType] " + toolsOnField[i, column, (int)Cell.toolsType]);
+
+            if (toolsOnField[i, column, (int)Cell.toolsType] == targetToolType)
+            {
+ //               cellsAndToolsInfo[i, column, (int)Cell.isMatch] = 1;
+                matchInColumnID[j] = i * Field.CurentFieldWidth + column;
+                j++;
+                matchInColumn++;
+         //       print("matchInColumn " + matchInColumn);
+            }
+            else
+            {
+                break;
+            }
+        }
+        if (matchInColumn > 2)
+        {
+            switch(matchInColumn)
+            {
+                case 3:
+                    for(int i=0;i<3;i++)
+                    {
+                        DestroyToolEvent(matchInColumnID[i], targetToolType);
+                        // добавить в массив тип инструмента -1 чтобы по этому флагу спускать вышестоящие фигуры
+                    }
+                    break;
+                case 4:
+                    for (int i = 0; i < 4; i++)
+                    {
+                        DestroyToolEvent(matchInColumnID[i], targetToolType);
+                    }
+                    break;
+                case 5:
+                    for (int i = 0; i < 5; i++)
+                    {
+                        DestroyToolEvent(matchInColumnID[i], targetToolType);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (matchInRow > 2)
+        {
+            switch (matchInRow)
+            {
+                case 3:
+                    for (int i = 0; i < 3; i++)
+                    {
+                        DestroyToolEvent(matchInRowID[i], targetToolType);
+                        // добавить в массив тип инструмента -1 чтобы по этому флагу спускать вышестоящие фигуры
+                    }
+                    break;
+                case 4:
+                    for (int i = 0; i < 4; i++)
+                    {
+                        DestroyToolEvent(matchInRowID[i], targetToolType);
+                    }
+                    break;
+                case 5:
+                    for (int i = 0; i < 5; i++)
+                    {
+                        DestroyToolEvent(matchInRowID[i], targetToolType);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    */
 
 }

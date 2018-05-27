@@ -4,26 +4,6 @@ using UnityEngine;
 
 public class ToolsAtStart : MonoBehaviour
 {
-    public delegate void ChangeGameField(int[,,] gameField);
-    public static event ChangeGameField ChangeGameFieldEvent;
-
-
-    private enum Cell
-    {
-        id = 0,
-        toolsType = 1,
-        x = 1,
-        y = 2
-    }
-
-    private float[,,] toolsXYCoordinates;
-
-    private int[,,] gameField;
-
-    private float curentUnitScale = 0f;
-    private int curentFieldWidth = 0;
-    private int curentFieldHeight = 0;
-
     private void Awake()
     {
 
@@ -31,74 +11,53 @@ public class ToolsAtStart : MonoBehaviour
 
     private void Start()
     {
-        FillGameField(out gameField, curentFieldWidth, curentFieldWidth);
-        PrintField(gameField, curentFieldWidth, curentFieldHeight);
-        SetToolsOnFieldInStart(gameField, ref ToolsPool.toolsReservedListOfStacks, ref ToolsPool.toolsOnFieldListOfStacks, curentFieldWidth, curentFieldHeight, curentUnitScale);
+        FillGameField(ref Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldWidth);
+        PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
+        SetToolsOnFieldInStart(Field.toolsOnField, ref ToolsPool.toolsReservedListOfStacks, ref ToolsPool.toolsOnFieldListOfStacks, Field.CurentFieldWidth, Field.CurentFieldHeight, Field.CurentUnitScale);
     }
 
     private void OnEnable()
     {
-        Field.ChangeCellsCoordinatesEvent += SetCellsXYCoordinates;
-        Field.ChangeFieldParametersEvent += SetFieldParameters;
+
     }
 
     private void OnDisable()
     {
-        Field.ChangeCellsCoordinatesEvent -= SetCellsXYCoordinates;
-        Field.ChangeFieldParametersEvent -= SetFieldParameters;
+
     }
 
-    private void SetCellsXYCoordinates(float[,,] cellXYCoordinates)
-    {
-        toolsXYCoordinates = (float[,,])cellXYCoordinates.Clone();
-    }
-
-    private void SetFieldParameters(int width, int height, float scale)
-    {
-        curentFieldWidth = width;
-        curentFieldHeight = height;
-        curentUnitScale = scale;
-    }
-
-    private void FillGameField(out int[,,] gameField, int width, int height)
+    private void FillGameField(ref int[] toolsOnField, int width, int height)
     {
         int[] toolTypesNumber = new int[(int)((int)ToolType.toolBox * 0.5f)];
         int typesSingleToolsQuantity = 0;
+        int fieldSize = Field.FieldSize;
         for (int i = 0, j = 0; i < (int)ToolType.toolBox; i += 2, j++)
         {
             toolTypesNumber[j] = i;
             typesSingleToolsQuantity++;
         }
-        gameField = new int[width, height, 2];
-        for (int i = 0, k = 0; i < width; i++)
+        for (int i = 0; i < fieldSize; i++)
         {
-            for (int j = 0; j < height; j++, k++)
-            {
-                gameField[i, j, (int)Cell.id] = k;
-                gameField[i, j, (int)Cell.toolsType] = toolTypesNumber[Random.Range(0, typesSingleToolsQuantity)];
-            }
+            Field.toolsOnField[i] = toolTypesNumber[Random.Range(0, typesSingleToolsQuantity)];
         }
-        PrintField(gameField, curentFieldWidth, curentFieldHeight);
-        CheckAndRemoveMatchesInStart(ref gameField, toolTypesNumber, typesSingleToolsQuantity, width, height);
-        if (ChangeGameFieldEvent != null)
-        {
-            ChangeGameFieldEvent(gameField);
-        }
+        PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
+        CheckAndRemoveMatchesInStart(ref Field.toolsOnField, toolTypesNumber, typesSingleToolsQuantity, width, height);
     }
 
-    private void CheckAndRemoveMatchesInStart(ref int[,,] gameField, int[] toolTypesNumber, int typesSingleToolsQuantity, int width, int height)
+    private void CheckAndRemoveMatchesInStart(ref int[] toolsOnField, int[] toolTypesNumber, int typesSingleToolsQuantity, int width, int height)
     {
         int curentCellType = -1;
         int lastCellType = -1;
         int match = 0;
+        int fieldSize = Field.FieldSize;
 
-        for (int i = 0; i < height; i++)
+        for (int i = 0, k = 0; i < height; i++)
         {
             match = 0;
             lastCellType = -1;
-            for (int j = 0; j < width; j++)
+            for (int j = 0; j < width; j++, k++)
             {
-                curentCellType = gameField[i, j, (int)Cell.toolsType];
+                curentCellType = Field.toolsOnField[k];
                 if (lastCellType == curentCellType)
                 {
                     match++;
@@ -109,8 +68,8 @@ public class ToolsAtStart : MonoBehaviour
                 }
                 if (match == 2)
                 {
-                    RemoveMatchesInStart(ref gameField, i, j, typesSingleToolsQuantity);
-                    curentCellType = gameField[j, i, (int)Cell.toolsType];
+                    RemoveMatchesInStart(ref Field.toolsOnField, i, j, typesSingleToolsQuantity);
+                    curentCellType = Field.toolsOnField[k];
                     match = 0;
                 }
                 lastCellType = curentCellType;
@@ -125,7 +84,7 @@ public class ToolsAtStart : MonoBehaviour
             lastCellType = -1;
             for (int j = 0; j < width; j++)
             {
-                curentCellType = gameField[j, i, (int)Cell.toolsType];
+                curentCellType = Field.toolsOnField[j * height + i];
                 if (lastCellType == curentCellType)
                 {
                     match++;
@@ -136,8 +95,8 @@ public class ToolsAtStart : MonoBehaviour
                 }
                 if (match == 2)
                 {
-                    RemoveMatchesInStart(ref gameField, j, i, typesSingleToolsQuantity);
-                    curentCellType = gameField[j, i, (int)Cell.toolsType];
+                    RemoveMatchesInStart(ref Field.toolsOnField, j, i, typesSingleToolsQuantity);
+                    curentCellType = Field.toolsOnField[j * height + i];
                     match = 0;
                 }
                 lastCellType = curentCellType;
@@ -145,11 +104,12 @@ public class ToolsAtStart : MonoBehaviour
         }
     }
 
-    private void RemoveMatchesInStart(ref int[,,] gameField, int column, int row, int typesSingleToolsQuantity)
+    private void RemoveMatchesInStart(ref int[] toolsOnField, int column, int row, int typesSingleToolsQuantity)
     {
         //   1
         //0  C  2
         //   3
+        int id = row * Field.CurentFieldWidth + column;
         int[] neighbours = new int[4];
         int minTypeNumber = 0;
         int maxTypeNumber = (typesSingleToolsQuantity - 1) * 2;
@@ -160,16 +120,16 @@ public class ToolsAtStart : MonoBehaviour
         }
         else
         {
-            neighbours[0] = gameField[column - 1, row, (int)Cell.toolsType];
+            neighbours[0] = Field.toolsOnField[id - 1];
         }
 
-        if (column == curentFieldWidth - 1)
+        if (column == Field.CurentFieldWidth - 1)
         {
             neighbours[3] = -1;
         }
         else
         {
-            neighbours[3] = gameField[column + 1, row, (int)Cell.toolsType];
+            neighbours[3] = Field.toolsOnField[id + 1];
         }
 
         if (row == 0)
@@ -178,16 +138,16 @@ public class ToolsAtStart : MonoBehaviour
         }
         else
         {
-            neighbours[1] = gameField[column, row - 1, (int)Cell.toolsType];
+            neighbours[1] = Field.toolsOnField[id - Field.CurentFieldWidth];
         }
 
-        if (row == curentFieldHeight - 1)
+        if (row == Field.CurentFieldHeight - 1)
         {
             neighbours[3] = -1;
         }
         else
         {
-            neighbours[3] = gameField[column, row + 1, (int)Cell.toolsType];
+            neighbours[3] = Field.toolsOnField[id + Field.CurentFieldWidth];
         }
         SimpleSort(ref neighbours);
         for (int i = 0; i < 4; i++)
@@ -203,27 +163,12 @@ public class ToolsAtStart : MonoBehaviour
         }
         if (Random.Range(0, 2) == 0)
         {
-            gameField[column, row, (int)Cell.toolsType] = minTypeNumber;
+            Field.toolsOnField[id] = minTypeNumber;
         }
         else
         {
-            gameField[column, row, (int)Cell.toolsType] = maxTypeNumber;
+            Field.toolsOnField[id] = maxTypeNumber;
         }
-    }
-
-    private void PrintField(int[,,] field, int width, int height)
-    {
-        string s = "";
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                s = s + field[i, j, 1].ToString() + " ";
-            }
-
-            s = s + "\n";
-        }
-        print(s);
     }
 
     private void SimpleSort(ref int[] arr)
@@ -243,6 +188,41 @@ public class ToolsAtStart : MonoBehaviour
         }
     }
 
+    private void SetToolsOnFieldInStart(int[] toolsOnField, ref List<Stack<GameObject>> toolsReservedListOfStacks, ref List<Stack<GameObject>> toolsOnFieldListOfStacks, int width, int height, float curentUnitScale)
+    {
+        GameObject tool;
+        Vector3 curentToolPosition = Vector3.zero;
+        Vector3 unitScale = new Vector3(curentUnitScale, curentUnitScale, curentUnitScale);
+        for (int i = 0, k = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++, k++)
+            {
+                tool = toolsReservedListOfStacks[Field.toolsOnField[k]].Pop();
+                tool.GetComponent<Tool>().CellID = k;
+                curentToolPosition.x = Field.cellsXYCoord[k, (int)Cell.x];
+                curentToolPosition.y = Field.cellsXYCoord[k, (int)Cell.y];
+                tool.transform.position = curentToolPosition;
+                tool.transform.localScale = unitScale;
+                toolsOnFieldListOfStacks[Field.toolsOnField[k]].Push(tool);
+                tool.SetActive(true);
+            }
+        }
+    }
+
+    private void PrintField(int[] field, int width, int height)
+    {
+        string s = "";
+        for (int i = 0, k = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++, k++)
+            {
+                s = s + field[k].ToString() + " ";
+            }
+
+            s = s + "\n";
+        }
+        print(s);
+    }
     private void PrintArr(int[] arr) // для текстового контроля
     {
         string s = "";
@@ -252,27 +232,4 @@ public class ToolsAtStart : MonoBehaviour
         }
         print(s);
     }
-
-    private void SetToolsOnFieldInStart(int[,,] gameField, ref List<Stack<GameObject>> toolsReservedListOfStacks, ref List<Stack<GameObject>> toolsOnFieldListOfStacks, int width, int height, float curentUnitScale)
-    {
-        GameObject tool;
-        Vector3 curentToolPosition = Vector3.zero;
-        Vector3 unitScale = new Vector3(curentUnitScale, curentUnitScale, curentUnitScale);
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                tool = toolsReservedListOfStacks[gameField[i, j, (int)Cell.toolsType]].Pop();
-                tool.GetComponent<Tool>().CellID = gameField[i, j, (int)Cell.id];
-                curentToolPosition.x = toolsXYCoordinates[i, j, (int)Cell.x];
-                curentToolPosition.y = toolsXYCoordinates[i, j, (int)Cell.y];
-                tool.transform.position = curentToolPosition;
-                tool.transform.localScale = unitScale;
-                toolsOnFieldListOfStacks[gameField[i, j, (int)Cell.toolsType]].Push(tool);
-                tool.SetActive(true);
-            }
-        }
-    }
-
-
 }

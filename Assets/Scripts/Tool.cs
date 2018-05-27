@@ -14,7 +14,6 @@ public class Tool : MonoBehaviour
     private Transform toolTransform;
     private bool isExchange=false;
 
-    //  private ToolType type;
     private void Awake()
     {
         toolTransform = this.transform;
@@ -22,31 +21,30 @@ public class Tool : MonoBehaviour
     private void OnEnable()
     {
         AnalysisToolsRelativePosition.MoveToolEvent += MoveTool;
+        AnalysisToolsRelativePosition.DestroyToolEvent += DeactivateTool;
     }
 
     private void OnDisable()
     {
         AnalysisToolsRelativePosition.MoveToolEvent -= MoveTool;
+        AnalysisToolsRelativePosition.DestroyToolEvent -= DeactivateTool;
     }
 
     private void MoveTool(int id, int newId,float newX, float newY)
     {
         if (cellID == id && !isExchange)
         {
-     //       print("cellID= "+ cellID+ " id= "+ id);
             StartCoroutine(MoveCoroutine(id, newId,newX, newY));
         }
     }
 
     private IEnumerator MoveCoroutine(int id, int newId, float newX, float newY)
     {
-        print("запуск корутины");
         isExchange = true;
         if(ExchangeMarkEvent!=null)
         {
             ExchangeMarkEvent(id, isExchange);
         }
-
         Vector3 curentPosition = toolTransform.position;
         Vector3 targetPosition = new Vector3(newX, newY, curentPosition.z);
         float frequency = 1 / timeForExchange;
@@ -76,11 +74,12 @@ public class Tool : MonoBehaviour
         cellID = newId;
     }
 
-    private void DeactivateTool(int id)
+    private void DeactivateTool(int id, int toolType)
     {
-
+        ToolsPool.toolsOnFieldListOfStacks[toolType].Pop();
+        ToolsPool.toolsReservedListOfStacks[toolType].Push(this.gameObject);
+        this.gameObject.SetActive(false);
     }
-
 
     public int CellID
     {
@@ -93,16 +92,5 @@ public class Tool : MonoBehaviour
             cellID = value;
         }
     }
-    //private ToolType Type
-    //{
-    //    get
-    //    {
-    //        return type;
-    //    }
-    //    set
-    //    {
-    //        type = value;
-    //    }
-    //}
 }
 
