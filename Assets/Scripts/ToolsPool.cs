@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum ToolType
 {
-    hacksaw,
+    hacksaw = 0,
     hacksawGroup,
     hammer,
     hammerGroup,
@@ -17,7 +17,8 @@ public enum ToolType
     spanner,
     spannerGroup,
     toolBox,
-    quantity
+    quantity,
+    isEmpty = -1,
 }
 
 public class ToolsPool : MonoBehaviour
@@ -72,7 +73,7 @@ public class ToolsPool : MonoBehaviour
 
         for (int i = 0; i < (int)ToolType.quantity; i++)
         {
-            if(i < (int)ToolType.toolBox)
+            if (i < (int)ToolType.toolBox)
             {
                 if (i % 2 == 0)
                 {

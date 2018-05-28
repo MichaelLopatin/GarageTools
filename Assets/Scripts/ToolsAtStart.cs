@@ -50,16 +50,19 @@ public class ToolsAtStart : MonoBehaviour
         int lastCellType = -1;
         int match = 0;
         int fieldSize = Field.FieldSize;
+   //     PrintArr(toolsOnField);
 
         for (int i = 0, k = 0; i < height; i++)
         {
             match = 0;
             lastCellType = -1;
-            for (int j = 0; j < width; j++, k++)
+            for (int j = 0; j < width; j++)
             {
-                curentCellType = Field.toolsOnField[k];
+                curentCellType = Field.toolsOnField[i * width + j];
+              //  print("curentCellType "+curentCellType);
                 if (lastCellType == curentCellType)
                 {
+     //               print("match++");
                     match++;
                 }
                 else
@@ -68,13 +71,18 @@ public class ToolsAtStart : MonoBehaviour
                 }
                 if (match == 2)
                 {
-                    RemoveMatchesInStart(ref Field.toolsOnField, i, j, typesSingleToolsQuantity);
+   //                 print("match==2");
+   //                 print("curentCellType ДО " + curentCellType);
+                    RemoveMatchesInStart(ref Field.toolsOnField, j, i, typesSingleToolsQuantity);
                     curentCellType = Field.toolsOnField[k];
+   //                 print("curentCellType ПОСЛЕ " + curentCellType);
                     match = 0;
                 }
                 lastCellType = curentCellType;
+                k++;
             }
         }
+   //     PrintArr(toolsOnField);
         curentCellType = -1;
         lastCellType = -1;
 
@@ -95,7 +103,7 @@ public class ToolsAtStart : MonoBehaviour
                 }
                 if (match == 2)
                 {
-                    RemoveMatchesInStart(ref Field.toolsOnField, j, i, typesSingleToolsQuantity);
+                    RemoveMatchesInStart(ref Field.toolsOnField, i,j, typesSingleToolsQuantity);
                     curentCellType = Field.toolsOnField[j * height + i];
                     match = 0;
                 }
@@ -149,7 +157,11 @@ public class ToolsAtStart : MonoBehaviour
         {
             neighbours[3] = Field.toolsOnField[id + Field.CurentFieldWidth];
         }
+  //      print("PrintArr(neighbours) до сортировки");
+  //      PrintArr(neighbours);
         SimpleSort(ref neighbours);
+  //      print("PrintArr(neighbours) после сортировки");
+  //      PrintArr(neighbours);
         for (int i = 0; i < 4; i++)
         {
             if (minTypeNumber == neighbours[i])
@@ -161,6 +173,7 @@ public class ToolsAtStart : MonoBehaviour
                 maxTypeNumber -= 2;
             }
         }
+ //       print("minTypeNumber= " + minTypeNumber + " maxTypeNumber " + maxTypeNumber);
         if (Random.Range(0, 2) == 0)
         {
             Field.toolsOnField[id] = minTypeNumber;

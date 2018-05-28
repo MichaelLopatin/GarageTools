@@ -7,10 +7,12 @@ public class GameIndicators : MonoBehaviour
     //public delegate void ChangeLevel(int level); // не подписаны
     //public static event ChangeLevel ChangeLevelEvent;
 
-    public static int level=1;
+    public static int level=9;
     private int lastLevel= level;
 
     private int points = 0;
+
+    public static Vector3 boxPointPosition = new Vector3(-3, -3, -2);
 
     private float levelTime;
 

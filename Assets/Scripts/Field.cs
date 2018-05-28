@@ -6,8 +6,12 @@ enum Cell
 {
     x=0,
     y=1,
-    IsNotExchange = 0,
+    isNotExchange = 0,
     isExchange = 1,
+    isNotMatch = 0,
+    isMatch = 1,
+    isNotTip = 0,
+    isTip = 1,
 }
 
 public class Field : MonoBehaviour
