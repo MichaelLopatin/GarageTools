@@ -1,10 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public enum ToolType
 {
-    hacksaw,
+    hacksaw = 0,
     hacksawGroup,
     hammer,
     hammerGroup,
@@ -17,18 +16,17 @@ public enum ToolType
     spanner,
     spannerGroup,
     toolBox,
-    quantity
+    quantity,
+    noTool = -2,
+    exchangeTool = -1,
 }
-
 
 public class ToolsPool : MonoBehaviour
 {
-
     [SerializeField] private GameObject[] toolTypes = new GameObject[(int)ToolType.quantity];
     [SerializeField] private Transform[] parentTransforms = new Transform[(int)ToolType.quantity];
     private int feildWidth = 16;
     private int feildHieght = 16;
-
 
     public static List<Stack<GameObject>> toolsReservedListOfStacks = new List<Stack<GameObject>>((int)ToolType.quantity);
     public static List<Stack<GameObject>> toolsOnFieldListOfStacks = new List<Stack<GameObject>>((int)ToolType.quantity);
@@ -75,7 +73,7 @@ public class ToolsPool : MonoBehaviour
 
         for (int i = 0; i < (int)ToolType.quantity; i++)
         {
-            if(i < (int)ToolType.toolBox)
+            if (i < (int)ToolType.toolBox)
             {
                 if (i % 2 == 0)
                 {

@@ -1,14 +1,23 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+
+enum Cell
+{
+    x = 0,
+    y = 1,
+    isNotExchange = 0,
+    isExchange = 1,
+    isNotMatch = 0,
+    isMatch = 1,
+    isNotTip = 0,
+    isTip = 1,
+    isEmpty = -1,
+    isNotEmpty = 0,
+    justCreate = -50,
+}
 
 public class Field : MonoBehaviour
 {
-    public delegate void ChangeCellsCoordinates(float[,,] cellsXYCoordinates);
-    public static event ChangeCellsCoordinates ChangeCellsCoordinatesEvent;
-    public delegate void ChangeFieldParameters(int curentFieldWidth, int curentFieldHeight, float curentUnitScale);
-    public static event ChangeFieldParameters ChangeFieldParametersEvent;
-
     private enum Row
     {
         first,
@@ -16,101 +25,68 @@ public class Field : MonoBehaviour
         last
     }
 
-    private enum CellInfo
-    {
-        id = 0,
-        x,
-        y
-    }
-
-    private enum CellColour
-    {
-        blue = 0,
-        green,
-        yellow
-    }
-
     [SerializeField] private Camera mainCam;
 
-    private int[] cellColourByIndex;
-
-    public int level = 1;
-
-    private float curentUnitScale;
-    private int curentFieldWidth = 0;
-    private int curentFieldHeight = 0;
+    private static float curentUnitScale = 0;
+    private static int curentFieldWidth = 0;
+    private static int curentFieldHeight = 0;
+    private static int fieldSize = 0;
 
     private Vector3 gameFieldCentrePosition;
-    private Vector3 indicatorsCentrePosition;
+    private static Vector3 indicatorsCentrePosition;
     private Vector3 firstCellPosition;
 
-    private float[,,] cellsXYCoordinates;
+    public static float[,] cellsXYCoord;
+    public static float[,] startCellsXYCoord;
+    public static int[] toolsOnField;
+    public static int[] emptyOnField;
+    public static int emptyCells = 0;
 
-    //   int count = 0;
-
-    private void Awake()
+    private void OnEnable()
     {
         SettingFieldParameters();
     }
 
     private void Start()
     {
-        SetField(ref CellsPool.blueCellsReservedListOfStacks, ref CellsPool.blueCellsOnFieldListOfStacks, CellColour.blue, level, firstCellPosition);
-        SetField(ref CellsPool.greenCellsReservedListOfStacks, ref CellsPool.greenCellsOnFieldListOfStacks, CellColour.green, level, firstCellPosition);
-        SetField(ref CellsPool.yellowCellsReservedListOfStacks, ref CellsPool.yellowCellsOnFieldListOfStacks, CellColour.yellow, level, firstCellPosition);
-        if (ChangeCellsCoordinatesEvent != null)
-        {
-            ChangeCellsCoordinatesEvent(cellsXYCoordinates);
-        }
-        if (ChangeFieldParametersEvent != null)
-        {
-            ChangeFieldParametersEvent(curentFieldWidth, curentFieldHeight, curentUnitScale);
-        }
+        SetField(ref CellsPool.blueCellsReservedListOfStacks, ref CellsPool.blueCellsOnFieldListOfStacks, CellColour.blue, GameIndicators.level, firstCellPosition);
+        SetField(ref CellsPool.greenCellsReservedListOfStacks, ref CellsPool.greenCellsOnFieldListOfStacks, CellColour.green, GameIndicators.level, firstCellPosition);
+        SetField(ref CellsPool.yellowCellsReservedListOfStacks, ref CellsPool.yellowCellsOnFieldListOfStacks, CellColour.yellow, GameIndicators.level, firstCellPosition);
     }
-
-    /*  private void Update()
-      {
-          count++;
-          if(count>600)
-          {
-              DisableField(ref CellsPool.yellowCellsReservedListOfStacks, ref CellsPool.yellowCellsOnFieldListOfStacks);
-          }
-          else if (count > 400)
-          {
-              DisableField(ref CellsPool.greenCellsReservedListOfStacks, ref CellsPool.greenCellsOnFieldListOfStacks);
-          }
-          else if (count > 200)
-          {
-                DisableField(ref CellsPool.blueCellsReservedListOfStacks, ref CellsPool.blueCellsOnFieldListOfStacks);
-
-          }
-      }*/
 
     private void SettingFieldParameters()
     {
-        SetFieldsCentrePositions(out gameFieldCentrePosition, out indicatorsCentrePosition);
-        curentFieldWidth = SetFieldWidth(level);
-        curentFieldHeight = SetFieldHeight(level);
-        curentUnitScale = SetUnitScale(level);
+        SetFieldsCentrePositions(out gameFieldCentrePosition);
+        curentFieldWidth = SetFieldWidth(GameIndicators.level);
+        curentFieldHeight = SetFieldHeight(GameIndicators.level);
+        curentUnitScale = SetUnitScale(GameIndicators.level);
+        fieldSize = curentFieldWidth * curentFieldHeight;
         firstCellPosition = SetFirstCellPosition(curentFieldWidth, curentFieldHeight, curentUnitScale, gameFieldCentrePosition);
-        SetCellsCoordinates(out cellsXYCoordinates, curentFieldWidth, curentFieldHeight, curentUnitScale, firstCellPosition);
+        SetCellsCoordinates(out cellsXYCoord, out startCellsXYCoord, curentFieldWidth, curentFieldHeight, curentUnitScale, firstCellPosition);
+        toolsOnField = new int[fieldSize];
+        emptyOnField = new int[fieldSize];
     }
 
-    private void SetCellsCoordinates(out float[,,] cellsXYCoordinates, int curentFieldWidth, int curentFieldHeight, float curentUnitScale, Vector3 firstCellPosition)
+    private void SetCellsCoordinates(out float[,] cellsXYCoord, out float[,] startCellsXYCoord, int curentFieldWidth, int curentFieldHeight, float curentUnitScale, Vector3 firstCellPosition)
     {
         Vector3 curentCellCoord = firstCellPosition;
-        cellsXYCoordinates = new float[curentFieldWidth, curentFieldHeight, 3];
-        for (int i = 0, k = 0; i < curentFieldWidth; i++)
+        cellsXYCoord = new float[curentFieldWidth * curentFieldHeight, 2];
+        startCellsXYCoord = new float[curentFieldWidth, 2];
+        for (int i = 0; i < FieldSize; i++)
         {
-            for (int j = 0; j < curentFieldHeight; j++, k++)
+            cellsXYCoord[i, (int)Cell.x] = curentCellCoord.x;
+            cellsXYCoord[i, (int)Cell.y] = curentCellCoord.y;
+            curentCellCoord.x += curentUnitScale;
+            if (i % (curentFieldWidth) == curentFieldWidth - 1)
             {
-                cellsXYCoordinates[i, j, (int)CellInfo.id] = k;
-                cellsXYCoordinates[i, j, (int)CellInfo.x] = curentCellCoord.x;
-                cellsXYCoordinates[i, j, (int)CellInfo.y] = curentCellCoord.y;
-                curentCellCoord.x += curentUnitScale;
-             }
-            curentCellCoord.x = firstCellPosition.x;
-            curentCellCoord.y -= curentUnitScale;
+                curentCellCoord.x = firstCellPosition.x;
+                curentCellCoord.y -= curentUnitScale;
+            }
+        }
+        for (int i = 0; i < curentFieldWidth; i++)
+        {
+            startCellsXYCoord[i, (int)Cell.x] = cellsXYCoord[i, (int)Cell.x];
+            startCellsXYCoord[i, (int)Cell.y] = cellsXYCoord[i, (int)Cell.y] + curentUnitScale;
         }
     }
 
@@ -219,16 +195,14 @@ public class Field : MonoBehaviour
         }
     }
 
-    private void SetFieldsCentrePositions(out Vector3 gameFieldCentrePosition, out Vector3 indicatorsCentrePosition)
+    private void SetFieldsCentrePositions(out Vector3 gameFieldCentrePosition)
     {
         Vector3 screenSizeInUnits;
         float xFieldPos;
         float xIndicatorsPos;
-
         screenSizeInUnits = mainCam.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, 0));
         xFieldPos = screenSizeInUnits.x - screenSizeInUnits.y;
         gameFieldCentrePosition = new Vector3(xFieldPos, 0, 0);
-
         xIndicatorsPos = xFieldPos - screenSizeInUnits.x;
         indicatorsCentrePosition = new Vector3(xIndicatorsPos, 0, 0);
     }
@@ -259,6 +233,63 @@ public class Field : MonoBehaviour
         return unitScale[level - 1];
     }
 
+    public static float CurentUnitScale
+    {
+        get
+        {
+            return curentUnitScale;
+        }
+        private set
+        {
+            curentUnitScale = value;
+        }
+    }
 
+    public static int CurentFieldWidth
+    {
+        get
+        {
+            return curentFieldWidth;
+        }
+        private set
+        {
+            curentFieldWidth = value;
+        }
+    }
 
+    public static int CurentFieldHeight
+    {
+        get
+        {
+            return curentFieldHeight;
+        }
+        private set
+        {
+            curentFieldHeight = value;
+        }
+    }
+
+    public static int FieldSize
+    {
+        get
+        {
+            return fieldSize;
+        }
+        private set
+        {
+            fieldSize = value;
+        }
+    }
+
+    public static Vector3 IndicatorsCentrePosition
+    {
+        get
+        {
+            return indicatorsCentrePosition;
+        }
+        private set
+        {
+            indicatorsCentrePosition = value;
+        }
+    }
 }

@@ -1,153 +1,289 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+
+public enum SwipeDirection
+{
+    up,
+    right,
+    down,
+    left
+}
 
 public class MouseController : MonoBehaviour
 {
-    private Vector3 mousePosInWorld;
+    public delegate void SelectCell(int selectedSellID, int lastSelectedСellID);
+    public static event SelectCell SelectCellEvent;
+    public delegate void DeselectCell(int cellID);
+    public static event DeselectCell DeselectCellEvent;
+    public delegate void Swipe(int cellID, SwipeDirection swipeDirection);
+    public static event Swipe SwipeEvent;
+    public delegate void PressPauseButton();
+    public static event PressPauseButton PressPauseButtonEvent;
+
     [SerializeField] private Camera camera;
 
-    private float curentUnitScale;
-    private int curentFieldWidth = 0;
-    private int curentFieldHeight = 0;
-    //private int centreWidthtIndex = 0;
-    //private int centreHeightIndex = 0;
+    private Vector3 mousePosInWorld;
+    private float percentageOfUnitForSwipe = 0.3f;
+    private float swipeLaunchDistance = 1f;
+    private float deltaX;
+    private float deltaY;
+    private bool isMouseButtonDown = false;
+    private bool isSwiping = false;
+    private SwipeDirection swipeDirection;
+    private int selectedСellID = -1;
+    private int lastSelectedСellID = -1;
+    private bool haveSelectedCell = false;
+    private bool justSelectedCell = false;
 
-    private float[,,] cellsXYCoordinates;
+    private float borderTop;
+    private float borderRight;
+    private float borderBottom;
+    private float borderLeft;
 
-    private enum Cell
+    private int pauseButtonLayer;
+
+    private void OnEnable()
     {
-        id = 0,
-        toolsType = 1,
-        x = 1,
-        y = 2
+        Tool.DeselectCellEvent += CleanSelectedFlags;
+
+        StartCoroutine(SetBorders());
+        swipeLaunchDistance = percentageOfUnitForSwipe * Field.CurentUnitScale;
+    }
+    private void OnDisable()
+    {
+        Tool.DeselectCellEvent -= CleanSelectedFlags;
     }
 
     private void Awake()
     {
-
-    }
-    private void OnEnable()
-    {
-        Field.ChangeCellsCoordinatesEvent += SetCellsXYCoordinates;
-        Field.ChangeFieldParametersEvent += SetFieldParameters;
-    }
-    private void OnDisable()
-    {
-        Field.ChangeCellsCoordinatesEvent -= SetCellsXYCoordinates;
-        Field.ChangeFieldParametersEvent -= SetFieldParameters;
+        pauseButtonLayer = LayerMask.NameToLayer("PauseButtonLayer");
     }
 
-    private void Start()
-    {
-
-    }
     private void Update()
     {
-        if (Input.GetMouseButtonDown(1))
+        if (isMouseButtonDown && !isSwiping)
         {
-            PrintField(cellsXYCoordinates, curentFieldWidth, curentFieldHeight, 2);
+            if (selectedСellID >= 0)
+            {
+                DetermineSwipe(selectedСellID);
+            }
         }
+
+        if (isSwiping && (haveSelectedCell || justSelectedCell))
+        {
+            if (DeselectCellEvent != null)
+            {
+                DeselectCellEvent(selectedСellID);
+                selectedСellID = -1;
+                lastSelectedСellID = -1;
+                haveSelectedCell = false;
+                justSelectedCell = false;
+            }
+        }
+
         if (Input.GetMouseButtonDown(0))
         {
             mousePosInWorld = camera.ScreenToWorldPoint(Input.mousePosition);
+            if ((mousePosInWorld.x >= borderLeft && mousePosInWorld.x <= borderRight) &&
+    (mousePosInWorld.y >= borderBottom && mousePosInWorld.y <= borderTop))
+            {
+                if (!isSwiping)
+                {
+                    lastSelectedСellID = selectedСellID;
+                    selectedСellID = SearchCellID(mousePosInWorld);
+                    isMouseButtonDown = true;
+                    if (haveSelectedCell && lastSelectedСellID != selectedСellID)
+                    {
+                        if (DeselectCellEvent != null)
+                        {
+                            haveSelectedCell = false;
+                            DeselectCellEvent(lastSelectedСellID);
+                        }
+                    }
+                    if (!haveSelectedCell)
+                    {
+                        if (SelectCellEvent != null)
+                        {
+                            justSelectedCell = true;
+                            SelectCellEvent(selectedСellID, lastSelectedСellID);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (DeselectCellEvent != null)
+                {
+                    DeselectCellEvent(selectedСellID);
+                }
+                selectedСellID = -1;
+                lastSelectedСellID = -1;
+                haveSelectedCell = false;
+                justSelectedCell = false;
 
-            print("cell ID = " + SearchCellID(mousePosInWorld));
+                Vector2 rayStartPoint2D = new Vector2(mousePosInWorld.x, mousePosInWorld.y);
+                RaycastHit2D rayHit = Physics2D.Raycast(rayStartPoint2D, Vector2.zero, 15f, 1 << pauseButtonLayer);
+                if (rayHit.collider != null && rayHit.collider.CompareTag("TagPauseButton"))
+                {
+                    if (PressPauseButtonEvent != null)
+                    {
+                        PressPauseButtonEvent();
+                    }
+                }
+            }
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            isMouseButtonDown = false;
+            if (justSelectedCell)
+            {
+                justSelectedCell = false;
+                haveSelectedCell = true;
+            }
+            else if (haveSelectedCell)
+            {
+                haveSelectedCell = false;
+                if (DeselectCellEvent != null)
+                {
+                    DeselectCellEvent(selectedСellID);
+                }
+            }
+            if (isSwiping)
+            {
+                isSwiping = false;
+            }
         }
     }
 
-    private void SetCellsXYCoordinates(float[,,] coordinates)
+    private void CleanSelectedFlags(int id)
     {
-        cellsXYCoordinates = (float[,,])coordinates.Clone();
+        justSelectedCell = false;
+        haveSelectedCell = false;
+        selectedСellID = -1;
     }
 
-    private void SetFieldParameters(int width, int height, float scale)
+    private void DetermineSwipe(int swipeCellID)
     {
-        curentFieldWidth = width;
-        curentFieldHeight = height;
-        curentUnitScale = scale;
+        deltaX = camera.ScreenToWorldPoint(Input.mousePosition).x - mousePosInWorld.x;
+        deltaY = camera.ScreenToWorldPoint(Input.mousePosition).y - mousePosInWorld.y;
+        if (Mathf.Abs(deltaX) > swipeLaunchDistance || Mathf.Abs(deltaY) > swipeLaunchDistance)
+        {
+            isSwiping = true;
+            if (Mathf.Abs(deltaX) > Mathf.Abs(deltaY))
+            {
+                if (deltaX < 0)
+                {
+                    if (swipeCellID % Field.CurentFieldWidth != 0)
+                    {
+                        swipeDirection = SwipeDirection.left;
+                        if (SwipeEvent != null)
+                        {
+                            SwipeEvent(swipeCellID, swipeDirection);
+                        }
+                    }
+                }
+                else
+                {
+                    if (swipeCellID % Field.CurentFieldWidth != Field.CurentFieldWidth - 1)
+                    {
+                        swipeDirection = SwipeDirection.right;
+                        if (SwipeEvent != null)
+                        {
+                            SwipeEvent(swipeCellID, swipeDirection);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (deltaY > 0)
+                {
+
+                    if (swipeCellID > Field.CurentFieldWidth - 1)
+                    {
+                        swipeDirection = SwipeDirection.up;
+                        if (SwipeEvent != null)
+                        {
+                            SwipeEvent(swipeCellID, swipeDirection);
+                        }
+                    }
+                }
+                else
+                {
+                    if (swipeCellID < (Field.CurentFieldWidth * (Field.CurentFieldHeight - 1) - 1))
+                    {
+                        swipeDirection = SwipeDirection.down;
+                        if (SwipeEvent != null)
+                        {
+                            SwipeEvent(swipeCellID, swipeDirection);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private int SearchCellID(Vector3 mousePosInWorld)
     {
-        int column;
-        int row;
-
-        if (mousePosInWorld.x <= cellsXYCoordinates[0, 0, (int)Cell.x] + curentUnitScale * 0.5f)
+        float[] xCoord = new float[Field.CurentFieldWidth];
+        float[] yCoord = new float[Field.CurentFieldHeight];
+        for (int i = 0; i < Field.CurentFieldWidth; i++)
         {
-            column = 0;
+            xCoord[i] = Field.cellsXYCoord[i, (int)Cell.x];
         }
-        else if (mousePosInWorld.x >= cellsXYCoordinates[0, curentFieldWidth - 1, (int)Cell.x] - curentUnitScale * 0.5f)
+        for (int i = 0; i < Field.CurentFieldHeight; i++)
         {
-            column = curentFieldWidth - 1;
+            yCoord[i] = Field.cellsXYCoord[(Field.CurentFieldHeight - i - 1) * Field.CurentFieldHeight, (int)Cell.y];
         }
-        else
-        {
-            column = BinarySearchX(0, (int)(curentFieldWidth * 0.5f) + 1, curentFieldWidth - 1, mousePosInWorld.x);
-        }
-
-        if (mousePosInWorld.y >= (cellsXYCoordinates[0, 0, (int)Cell.y] - curentUnitScale * 0.5f))
-        {
-            row = 0;
-        }
-        else if (mousePosInWorld.y <= cellsXYCoordinates[curentFieldHeight - 1, 0, (int)Cell.y] + curentUnitScale * 0.5f)
-        {
-            row = curentFieldHeight - 1;
-        }
-        else
-        {
-            row = BinarySearchY(0, (int)(curentFieldHeight * 0.5f) + 1, curentFieldHeight - 1, mousePosInWorld.y);
-        }
-
-        return (int)cellsXYCoordinates[row, column,(int)Cell.id];
+        int row = Field.CurentFieldHeight - 1 - BinarySearch(yCoord, 0, (int)(Field.CurentFieldWidth * 0.5f), Field.CurentFieldWidth - 1, mousePosInWorld.y);
+        int column = BinarySearch(xCoord, 0, (int)(Field.CurentFieldHeight * 0.5f), Field.CurentFieldHeight - 1, mousePosInWorld.x);
+        return (row * Field.CurentFieldWidth + column);
     }
 
-    private int BinarySearchX(int left, int middle, int right, float number)
+    private int BinarySearch(float[] arr, int left, int middle, int right, float coord)
     {
-        if ((number >= cellsXYCoordinates[0, middle, (int)Cell.x] - curentUnitScale * 0.5f) &&
-            (number <= cellsXYCoordinates[0, middle, (int)Cell.x] + curentUnitScale * 0.5f))
+        if ((coord >= arr[middle] - Field.CurentUnitScale * 0.5f) &&
+            (coord <= arr[middle] + Field.CurentUnitScale * 0.5f))
         {
             return middle;
         }
-
-        else if (number < cellsXYCoordinates[0, middle, (int)Cell.x])
+        else if (coord < arr[left] + Field.CurentUnitScale * 0.5f)
         {
-            return BinarySearchX(left, left + (int)((middle - left) * 0.5f), middle, number);
+            return left;
+        }
+        else if (coord > arr[right] - Field.CurentUnitScale * 0.5f)
+        {
+            return right;
+        }
+        else if (coord < arr[middle])
+        {
+            return BinarySearch(arr, left, left + (int)((middle - left) * 0.5f), middle, coord);
         }
         else
         {
-            return BinarySearchX(middle, middle + (int)((right - middle) * 0.5f), right, number);
+            return BinarySearch(arr, middle, middle + (int)((right - middle) * 0.5f), right, coord);
         }
     }
 
-
-    private int BinarySearchY(int left, int middle, int right, float number)
+    private IEnumerator SetBorders()
     {
-        if ((number >= cellsXYCoordinates[middle, 0, (int)Cell.y] - curentUnitScale * 0.5f) &&
-                (number <= cellsXYCoordinates[middle, 0, (int)Cell.y] + curentUnitScale * 0.5f))
-        {
-            return middle;
-        }
-        else if (number > cellsXYCoordinates[middle, 0, (int)Cell.y])
-        {
-            return BinarySearchY(left, left + (int)((middle - left) * 0.5f), middle, number);
-        }
-        else
-        {
-            return BinarySearchY(middle, middle + (int)((right - middle) * 0.5f), right, number);
-        }
+        yield return null;
+        borderTop = Field.cellsXYCoord[0, (int)Cell.y] + Field.CurentUnitScale * 0.5f;
+        borderRight = Field.cellsXYCoord[Field.FieldSize - 1, (int)Cell.x] + Field.CurentUnitScale * 0.5f;
+        borderBottom = Field.cellsXYCoord[Field.FieldSize - 1, (int)Cell.y] - Field.CurentUnitScale * 0.5f;
+        borderLeft = Field.cellsXYCoord[0, (int)Cell.x] - Field.CurentUnitScale * 0.5f;
     }
 
-    private void PrintField(float[,,] field, int width, int height, int k)
+    private void PrintField(int[] field, int width, int height)
     {
         string s = "";
-        for (int i = 0; i < width; i++)
+        for (int i = 0, k = 0; i < width; i++)
         {
-            for (int j = 0; j < height; j++)
+            for (int j = 0; j < height; j++, k++)
             {
-                s = s + field[i, j, k].ToString() + " ";
+                s = s + field[k].ToString() + " ";
             }
-
             s = s + "\n";
         }
         print(s);
