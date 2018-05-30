@@ -23,7 +23,8 @@ public class GameIndicators : MonoBehaviour
     [SerializeField] private GameObject minPointsText;
     private TextMesh minPointsTextMesh;
     private Transform winLoseTextTransform;
-  
+    [SerializeField] private GameObject pauseButtonObj;
+    private PauseButton pauseButtonComponent;
 
     public static int points = 0;
     public static int pointsForTool = 1;
@@ -39,6 +40,8 @@ public class GameIndicators : MonoBehaviour
 
     private void Awake()
     {
+        pauseButtonComponent = pauseButtonObj.GetComponent<PauseButton>();
+        pauseButtonComponent.enabled = false;
         shakeTextTransform = shakeText.transform;
         shakeText.SetActive(false);
         winLoseTextMesh = winLoseText.GetComponent<TextMesh>();
@@ -67,6 +70,7 @@ public class GameIndicators : MonoBehaviour
             TimeBar.WinLevelEvent += Win;
             TimeBar.LoseLevelEvent += Lose;
         }
+        MouseController.PressPauseButtonEvent += GameOnPause;
     }
 
     private void OnDisable()
@@ -82,11 +86,18 @@ public class GameIndicators : MonoBehaviour
             TimeBar.WinLevelEvent -= Win;
             TimeBar.LoseLevelEvent -= Lose;
         }
+        MouseController.PressPauseButtonEvent -= GameOnPause;
     }
 
     private void Update()
     {
 
+    }
+
+
+    private void GameOnPause()
+    {
+        pauseButtonComponent.enabled = true;
     }
 
     private void Shake()

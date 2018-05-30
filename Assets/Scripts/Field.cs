@@ -45,11 +45,11 @@ public class Field : MonoBehaviour
 
     private void Awake()
     {
-        SettingFieldParameters();
+     //   SettingFieldParameters();
     }
     private void OnEnable()
     {
-
+       SettingFieldParameters();
     }
 
     private void Start()
@@ -88,6 +88,7 @@ public class Field : MonoBehaviour
         SetCellsCoordinates(out cellsXYCoord,out startCellsXYCoord, curentFieldWidth, curentFieldHeight, curentUnitScale, firstCellPosition);
         toolsOnField = new int[fieldSize];
         emptyOnField = new int[fieldSize];
+        print("SettingFieldParameters  fieldSize");
     }
 
     private void SetCellsCoordinates(out float[,] cellsXYCoord, out float[,] startCellsXYCoord, int curentFieldWidth, int curentFieldHeight, float curentUnitScale, Vector3 firstCellPosition)

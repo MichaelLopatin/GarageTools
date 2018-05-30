@@ -18,6 +18,8 @@ public class MouseController : MonoBehaviour
     public static event DeselectCell DeselectCellEvent;
     public delegate void Swipe(int cellID, SwipeDirection swipeDirection);
     public static event Swipe SwipeEvent;
+    public delegate void PressPauseButton();
+    public static event PressPauseButton PressPauseButtonEvent;
 
     private Vector3 mousePosInWorld;
     [SerializeField] private Camera camera;
@@ -39,7 +41,10 @@ public class MouseController : MonoBehaviour
     private float borderRight;
     private float borderBottom;
     private float borderLeft;
-//    private int selectedCellsNumber = 0;
+
+    private int pauseButtonLayer;
+
+    //    private int selectedCellsNumber = 0;
 
     private void OnEnable()
     {
@@ -53,6 +58,10 @@ public class MouseController : MonoBehaviour
         Tool.DeselectCellEvent -= CleanSelectedFlags;
     }
 
+    private void Awake()
+    {
+        pauseButtonLayer = LayerMask.NameToLayer("PauseButtonLayer");
+    }
 
     private void Update()
     {
@@ -117,8 +126,15 @@ public class MouseController : MonoBehaviour
                 haveSelectedCell = false;
                 justSelectedCell = false;
 
- 
-
+                Vector2 rayStartPoint2D = new Vector2(mousePosInWorld.x, mousePosInWorld.y);
+                RaycastHit2D rayHit = Physics2D.Raycast(rayStartPoint2D, Vector2.zero, 15f, 1 << pauseButtonLayer);
+                if (rayHit.collider != null && rayHit.collider.CompareTag("TagPauseButton"))
+                {
+                    if(PressPauseButtonEvent!=null)
+                    {
+                        PressPauseButtonEvent();
+                    }
+                }
             }
         }
 

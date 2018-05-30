@@ -72,7 +72,7 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         SetExchangeTools(out exchangeTools);
 
         SetTipsAndMatchAndColumnsOnField(out tipsOnField, out haveMatchOnField, out columnsWithEmptyCells);
-        SetExchangeTools(out exchangeTools);
+
         FindTipsInField();
         columnsWithFallingTools = new int[Field.CurentFieldWidth];
         for (int i = 0; i < Field.CurentFieldWidth; i++)
@@ -249,6 +249,7 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
 
     private void SetTipsAndMatchAndColumnsOnField(out int[] tipsOnField, out int[] haveMatchOnField, out int[] columnsWithEmptyCells)
     {
+        print("SetTipsAndMatchAndColumnsOnField  fieldSize");
         int size = Field.FieldSize;
         int width = Field.CurentFieldWidth;
         tipsOnField = new int[size];
