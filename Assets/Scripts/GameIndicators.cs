@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameIndicators : MonoBehaviour
 {
@@ -31,8 +32,8 @@ public class GameIndicators : MonoBehaviour
 
     public static int points = 0;
     public static int pointsForTool = 1;
-    public static int pointsWinByTime = 60;
-    public static int pointsWinByMoves = 30;
+    public static int pointsWinByTime = 70;
+    public static int pointsWinByMoves = 34;
 
     public static Vector3 pointsObjOffset=new Vector3(0,-3,0);
     public static Vector3 boxPointPosition;
@@ -93,12 +94,6 @@ public class GameIndicators : MonoBehaviour
         }
         MouseController.PressPauseButtonEvent -= GameOnPause;
     }
-
-    private void Update()
-    {
-
-    }
-
 
     private void GameOnPause()
     {
@@ -182,7 +177,13 @@ public class GameIndicators : MonoBehaviour
             winLoseTextTransform.localScale = Vector3.Lerp( targetScale, beginScale,scaleTime * frequency);
             yield return null;
         }
-
         winLoseTextTransform.localScale = beginScale;
+        ResetProgress();
+        SceneManager.LoadScene("StartScene");
+    }
+
+    private static void ResetProgress()
+    {
+        points = 0;
     }
 }

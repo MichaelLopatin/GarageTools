@@ -111,6 +111,10 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         {
             StartCoroutine(CheckMatchesAfterFallAllField());
         }
+        if(Input.GetKey(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
 
         if (Input.GetMouseButtonDown(1))
         {
