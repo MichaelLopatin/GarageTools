@@ -14,6 +14,9 @@ public class GameIndicators : MonoBehaviour
     public static GameMode gameMode=GameMode.time;
     //private int lastLevel= level;
 
+    [SerializeField] private GameObject timeBarObj;
+    [SerializeField] private GameObject movesBarObj;
+
     [SerializeField] private GameObject gameScripts;
    [SerializeField] private GameObject shakeText;
     [SerializeField] private GameObject pointsObj;
@@ -63,12 +66,14 @@ public class GameIndicators : MonoBehaviour
             minPointsTextMesh.text = "/" + pointsWinByMoves.ToString();
         MovesBar.WinLevelEvent += Win;
         MovesBar.LoseLevelEvent += Lose;
+            timeBarObj.SetActive(false);
         }
         if (gameMode == GameMode.time)
         {
             minPointsTextMesh.text = "/" + pointsWinByTime.ToString();
             TimeBar.WinLevelEvent += Win;
             TimeBar.LoseLevelEvent += Lose;
+            movesBarObj.SetActive(false);
         }
         MouseController.PressPauseButtonEvent += GameOnPause;
     }

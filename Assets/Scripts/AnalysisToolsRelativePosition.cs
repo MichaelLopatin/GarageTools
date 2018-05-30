@@ -69,17 +69,7 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         Tool.EndToolMovementEvent += CheckMatchesInCell;
         Tool.ZeroControlTimeEvent += ZeroControlTime;
         InvisibleTipEvent += ResetTip;
-        SetExchangeTools(out exchangeTools);
-
-        SetTipsAndMatchAndColumnsOnField(out tipsOnField, out haveMatchOnField, out columnsWithEmptyCells);
-
-        FindTipsInField();
-        columnsWithFallingTools = new int[Field.CurentFieldWidth];
-        for (int i = 0; i < Field.CurentFieldWidth; i++)
-        {
-            columnsWithFallingTools[i] = 0;
-            StartCoroutine(EmptyCellsManipulationCoroutine(i));
-        }
+  
 
 
     }
@@ -96,7 +86,17 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
 
     private void Start()
     {
+        SetExchangeTools(out exchangeTools);
 
+        SetTipsAndMatchAndColumnsOnField(out tipsOnField, out haveMatchOnField, out columnsWithEmptyCells);
+
+        FindTipsInField();
+        columnsWithFallingTools = new int[Field.CurentFieldWidth];
+        for (int i = 0; i < Field.CurentFieldWidth; i++)
+        {
+            columnsWithFallingTools[i] = 0;
+            StartCoroutine(EmptyCellsManipulationCoroutine(i));
+        }
     }
 
     private void Update()
