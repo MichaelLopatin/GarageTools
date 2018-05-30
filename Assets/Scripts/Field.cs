@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 enum Cell
@@ -14,7 +13,7 @@ enum Cell
     isTip = 1,
     isEmpty = -1,
     isNotEmpty = 0,
-    justCreate=-50,
+    justCreate = -50,
 }
 
 public class Field : MonoBehaviour
@@ -41,15 +40,11 @@ public class Field : MonoBehaviour
     public static float[,] startCellsXYCoord;
     public static int[] toolsOnField;
     public static int[] emptyOnField;
-    public static int emptyCells=0;
+    public static int emptyCells = 0;
 
-    private void Awake()
-    {
-     //   SettingFieldParameters();
-    }
     private void OnEnable()
     {
-       SettingFieldParameters();
+        SettingFieldParameters();
     }
 
     private void Start()
@@ -59,24 +54,6 @@ public class Field : MonoBehaviour
         SetField(ref CellsPool.yellowCellsReservedListOfStacks, ref CellsPool.yellowCellsOnFieldListOfStacks, CellColour.yellow, GameIndicators.level, firstCellPosition);
     }
 
-    /*  private void Update()
-      {
-          count++;
-          if(count>600)
-          {
-              DisableField(ref CellsPool.yellowCellsReservedListOfStacks, ref CellsPool.yellowCellsOnFieldListOfStacks);
-          }
-          else if (count > 400)
-          {
-              DisableField(ref CellsPool.greenCellsReservedListOfStacks, ref CellsPool.greenCellsOnFieldListOfStacks);
-          }
-          else if (count > 200)
-          {
-                DisableField(ref CellsPool.blueCellsReservedListOfStacks, ref CellsPool.blueCellsOnFieldListOfStacks);
-
-          }
-      }*/
-
     private void SettingFieldParameters()
     {
         SetFieldsCentrePositions(out gameFieldCentrePosition);
@@ -85,19 +62,16 @@ public class Field : MonoBehaviour
         curentUnitScale = SetUnitScale(GameIndicators.level);
         fieldSize = curentFieldWidth * curentFieldHeight;
         firstCellPosition = SetFirstCellPosition(curentFieldWidth, curentFieldHeight, curentUnitScale, gameFieldCentrePosition);
-        SetCellsCoordinates(out cellsXYCoord,out startCellsXYCoord, curentFieldWidth, curentFieldHeight, curentUnitScale, firstCellPosition);
+        SetCellsCoordinates(out cellsXYCoord, out startCellsXYCoord, curentFieldWidth, curentFieldHeight, curentUnitScale, firstCellPosition);
         toolsOnField = new int[fieldSize];
         emptyOnField = new int[fieldSize];
-        print("SettingFieldParameters  fieldSize");
     }
 
     private void SetCellsCoordinates(out float[,] cellsXYCoord, out float[,] startCellsXYCoord, int curentFieldWidth, int curentFieldHeight, float curentUnitScale, Vector3 firstCellPosition)
     {
         Vector3 curentCellCoord = firstCellPosition;
-
         cellsXYCoord = new float[curentFieldWidth * curentFieldHeight, 2];
         startCellsXYCoord = new float[curentFieldWidth, 2];
-
         for (int i = 0; i < FieldSize; i++)
         {
             cellsXYCoord[i, (int)Cell.x] = curentCellCoord.x;
@@ -313,7 +287,7 @@ public class Field : MonoBehaviour
         {
             return indicatorsCentrePosition;
         }
-       private set
+        private set
         {
             indicatorsCentrePosition = value;
         }

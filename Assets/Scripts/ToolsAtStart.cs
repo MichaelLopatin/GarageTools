@@ -4,22 +4,17 @@ using UnityEngine;
 
 public class ToolsAtStart : MonoBehaviour
 {
-    private void Awake()
-    {
-
-    }
-
     private void Start()
     {
         FillGameField(ref Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldWidth);
-        PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
+      //  PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
         SetToolsOnFieldInStart(Field.toolsOnField, ref ToolsPool.toolsReservedListOfStacks, ref ToolsPool.toolsOnFieldListOfStacks, Field.CurentFieldWidth, Field.CurentFieldHeight, Field.CurentUnitScale);
     }
 
     private void OnEnable()
     {
         AnalysisToolsRelativePosition.ShakeUpEvent += Shake;
-       }
+    }
 
     private void OnDisable()
     {
@@ -35,11 +30,9 @@ public class ToolsAtStart : MonoBehaviour
     {
         yield return null;
         Field.emptyOnField = new int[Field.FieldSize];
-        Field.toolsOnField=new int[Field.FieldSize];
+        Field.toolsOnField = new int[Field.FieldSize];
         FillGameField(ref Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldWidth);
-     //   PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
         SetToolsOnFieldInStart(Field.toolsOnField, ref ToolsPool.toolsReservedListOfStacks, ref ToolsPool.toolsOnFieldListOfStacks, Field.CurentFieldWidth, Field.CurentFieldHeight, Field.CurentUnitScale);
-
     }
 
     private void FillGameField(ref int[] toolsOnField, int width, int height)
@@ -57,7 +50,7 @@ public class ToolsAtStart : MonoBehaviour
             Field.emptyOnField[i] = (int)Cell.isNotEmpty;
             Field.toolsOnField[i] = toolTypesNumber[Random.Range(0, typesSingleToolsQuantity)];
         }
-        PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
+        //   PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
         CheckAndRemoveMatchesInStart(ref Field.toolsOnField, toolTypesNumber, typesSingleToolsQuantity, width, height);
     }
 
@@ -67,7 +60,6 @@ public class ToolsAtStart : MonoBehaviour
         int lastCellType = -1;
         int match = 0;
         int fieldSize = Field.FieldSize;
-   //     PrintArr(toolsOnField);
 
         for (int i = 0, k = 0; i < height; i++)
         {
@@ -76,10 +68,8 @@ public class ToolsAtStart : MonoBehaviour
             for (int j = 0; j < width; j++)
             {
                 curentCellType = Field.toolsOnField[i * width + j];
-              //  print("curentCellType "+curentCellType);
                 if (lastCellType == curentCellType)
                 {
-     //               print("match++");
                     match++;
                 }
                 else
@@ -88,18 +78,15 @@ public class ToolsAtStart : MonoBehaviour
                 }
                 if (match == 2)
                 {
-   //                 print("match==2");
-   //                 print("curentCellType ДО " + curentCellType);
                     RemoveMatchesInStart(ref Field.toolsOnField, j, i, typesSingleToolsQuantity);
                     curentCellType = Field.toolsOnField[k];
-   //                 print("curentCellType ПОСЛЕ " + curentCellType);
                     match = 0;
                 }
                 lastCellType = curentCellType;
                 k++;
             }
         }
-   //     PrintArr(toolsOnField);
+        //     PrintArr(toolsOnField);
         curentCellType = -1;
         lastCellType = -1;
 
@@ -120,7 +107,7 @@ public class ToolsAtStart : MonoBehaviour
                 }
                 if (match == 2)
                 {
-                    RemoveMatchesInStart(ref Field.toolsOnField, i,j, typesSingleToolsQuantity);
+                    RemoveMatchesInStart(ref Field.toolsOnField, i, j, typesSingleToolsQuantity);
                     curentCellType = Field.toolsOnField[j * height + i];
                     match = 0;
                 }
@@ -131,9 +118,10 @@ public class ToolsAtStart : MonoBehaviour
 
     private void RemoveMatchesInStart(ref int[] toolsOnField, int column, int row, int typesSingleToolsQuantity)
     {
-        //   1
-        //0  C  2
-        //   3
+        // neighbours:
+        //      1
+        //   0  C  2
+        //      3
         int id = row * Field.CurentFieldWidth + column;
         int[] neighbours = new int[4];
         int minTypeNumber = 0;
@@ -174,11 +162,7 @@ public class ToolsAtStart : MonoBehaviour
         {
             neighbours[3] = Field.toolsOnField[id + Field.CurentFieldWidth];
         }
-  //      print("PrintArr(neighbours) до сортировки");
-  //      PrintArr(neighbours);
         SimpleSort(ref neighbours);
-  //      print("PrintArr(neighbours) после сортировки");
-  //      PrintArr(neighbours);
         for (int i = 0; i < 4; i++)
         {
             if (minTypeNumber == neighbours[i])
@@ -190,7 +174,6 @@ public class ToolsAtStart : MonoBehaviour
                 maxTypeNumber -= 2;
             }
         }
- //       print("minTypeNumber= " + minTypeNumber + " maxTypeNumber " + maxTypeNumber);
         if (Random.Range(0, 2) == 0)
         {
             Field.toolsOnField[id] = minTypeNumber;

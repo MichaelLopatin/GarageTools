@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class MovesBar : MonoBehaviour
@@ -18,7 +17,6 @@ public class MovesBar : MonoBehaviour
     private Transform maxMovesBarTransform;
     [SerializeField] private GameObject maxMovesText;
     private TextMesh maxMovesTextMesh;
-    
 
     private int curentMoves = 0;
     private int maxMoves = 10;
@@ -37,17 +35,13 @@ public class MovesBar : MonoBehaviour
         maxMovesBarTransform = maxMovesBar.transform;
         curentTextMesh = curentText.GetComponent<TextMesh>();
         StartCoroutine(FirstPositionCoroutine());
-        maxMovesTextMesh= maxMovesText.GetComponent<TextMesh>();
+        maxMovesTextMesh = maxMovesText.GetComponent<TextMesh>();
     }
     private void OnDisable()
     {
         AnalysisToolsRelativePosition.PlayerMoveEvent -= GetMove;
     }
 
-    private void Start()
-    {
-
-    }
     private IEnumerator FirstPositionCoroutine()
     {
         yield return null;
@@ -73,7 +67,6 @@ public class MovesBar : MonoBehaviour
         curentMovesBarTransform.position = barPosition;
         curentMovesBarTransform.localScale = barScale;
         curentTextMesh.text = curentMoves.ToString();
-
         if (curentMoves == maxMoves)
         {
             if (GameIndicators.points >= GameIndicators.pointsWinByMoves)

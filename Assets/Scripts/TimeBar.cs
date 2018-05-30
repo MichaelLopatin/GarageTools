@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TimeBar : MonoBehaviour
@@ -19,7 +18,6 @@ public class TimeBar : MonoBehaviour
     [SerializeField] private GameObject maxTimeText;
     private TextMesh maxTimeTextMesh;
 
-
     private int curentSeconds = 0;
     private int maxSeconds = 60;
 
@@ -35,18 +33,10 @@ public class TimeBar : MonoBehaviour
         maxTimeBarTransform = maxTimeBar.transform;
         curentTextMesh = curentText.GetComponent<TextMesh>();
         maxTimeTextMesh = maxTimeText.GetComponent<TextMesh>();
-
         StartCoroutine(FirstPositionCoroutine());
         StartCoroutine(TimeProcessingCoroutine());
     }
-    private void OnDisable()
-    {
-    }
 
-    private void Start()
-    {
-
-    }
     private IEnumerator FirstPositionCoroutine()
     {
         yield return null;

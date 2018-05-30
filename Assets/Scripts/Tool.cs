@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Tool : MonoBehaviour
@@ -15,11 +14,13 @@ public class Tool : MonoBehaviour
     public delegate void ZeroControlTime();
     public static event ZeroControlTime ZeroControlTimeEvent;
 
+    private static float timeMoveDown = 0.1f;
+
+    private Transform toolTransform;
+
     private int cellID = -1;
     private float timeForExchange = 0.25f;
-    private static float timeMoveDown = 0.1f;
     private float timeMoveToTheBox = 0.3f;
-    private Transform toolTransform;
     private bool isExchange = false;
     private bool isMovingDown = false;
 
@@ -27,6 +28,7 @@ public class Tool : MonoBehaviour
     {
         toolTransform = this.transform;
     }
+
     private void OnEnable()
     {
         AnalysisToolsRelativePosition.MoveToolEvent += MoveTool;
@@ -53,7 +55,6 @@ public class Tool : MonoBehaviour
 
     private IEnumerator MoveCoroutine(int id, int newId, float newX, float newY, ToolMoveType toolMoveType)
     {
-        //     print("MoveCoroutine");
         isExchange = true;
         if (ExchangeMarkEvent != null)
         {
@@ -77,7 +78,6 @@ public class Tool : MonoBehaviour
             {
                 moveTime = timeForExchange;
             }
-
             toolTransform.position = Vector3.Lerp(curentPosition, targetPosition, moveTime * frequency);
             yield return null;
         }
@@ -93,15 +93,12 @@ public class Tool : MonoBehaviour
         {
             EndToolMovementEvent(newId, id, toolMoveType);
         }
-
     }
-
 
     private void SleepTool()
     {
         ToolsPool.toolsOnFieldListOfStacks[Field.toolsOnField[cellID]].Pop();
         ToolsPool.toolsReservedListOfStacks[Field.toolsOnField[cellID]].Push(this.gameObject);
-
         this.gameObject.SetActive(false);
     }
 
@@ -116,25 +113,20 @@ public class Tool : MonoBehaviour
                     ZeroControlTimeEvent();
                 }
 
-                //Field.emptyOnField[cellID] = (int)Cell.isEmpty;
-                //Field.toolsOnField[cellID] = (int)ToolType.noTool;
-
                 GameIndicators.points += GameIndicators.pointsForTool;
                 if (ChangePointsEvent != null)
                 {
                     ChangePointsEvent();
                 }
-
                 SleepTool();
                 Field.emptyOnField[cellID] = (int)Cell.isEmpty;
                 Field.toolsOnField[cellID] = (int)ToolType.noTool;
-
                 //     StartCoroutine(MoveToTheBoxCoroutine());
             }
-       }
+        }
     }
 
-    private IEnumerator MoveToTheBoxCoroutine()
+    private IEnumerator MoveToTheBoxCoroutine() // создавать другие объекты и их уже "кидать" в коробку
     {
         float moveTime = 0f;
         Vector3 curentPosition = toolTransform.position;
@@ -151,7 +143,6 @@ public class Tool : MonoBehaviour
             {
                 moveTime = timeMoveToTheBox;
             }
-            
             toolTransform.localScale = Vector3.one * Mathf.Lerp(startScale, targetScale, moveTime * frequency);
             toolTransform.position = Vector3.Lerp(curentPosition, GameIndicators.boxPointPosition, moveTime * frequency);
             yield return null;
@@ -160,7 +151,6 @@ public class Tool : MonoBehaviour
         Field.toolsOnField[lastId] = (int)ToolType.noTool;
         this.gameObject.SetActive(false);
     }
-
 
     private void MoveDownTool(int id)
     {
@@ -182,7 +172,6 @@ public class Tool : MonoBehaviour
         int toolType = Field.toolsOnField[id];
         Field.toolsOnField[id] = (int)ToolType.noTool;
         Vector3 curentPosition = toolTransform.position;
-
         Vector3 targetPosition = new Vector3(Field.cellsXYCoord[newId, (int)Cell.x], Field.cellsXYCoord[newId, (int)Cell.y], curentPosition.z);
         float frequency = 1 / timeMoveDown;
         float moveTime = 0f;
@@ -198,11 +187,9 @@ public class Tool : MonoBehaviour
             {
                 moveTime = timeMoveDown;
             }
-
             toolTransform.position = Vector3.Lerp(curentPosition, targetPosition, moveTime * frequency);
             yield return null;
         }
-
         isExchange = false;
         Field.toolsOnField[newId] = toolType;
         cellID = newId;
@@ -211,13 +198,7 @@ public class Tool : MonoBehaviour
             ExchangeMarkEvent(id, isExchange);
         }
         isMovingDown = false;
-        //if (EndToolMovementEvent != null)
-        //{
-        //    EndToolMovementEvent(newId, id, ToolMoveType.moveDown);
-        //}
-
     }
-
 
     public int CellID
     {

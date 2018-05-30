@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class YellowCell : MonoBehaviour
@@ -7,7 +6,7 @@ public class YellowCell : MonoBehaviour
     private Transform cellTransform;
     private Vector3 basicPosition;
     private Vector3 selectedPosition;
-    [SerializeField] private int cellID;
+    private int cellID;
 
     private void OnEnable()
     {

@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Audio;
-
+﻿using UnityEngine;
 
 public class PauseButton : MonoBehaviour
 {
@@ -11,7 +7,6 @@ public class PauseButton : MonoBehaviour
 
     [SerializeField] private GameObject audioObj;
     private AudioSource audioSource;
-    private AudioClip audioClip;
 
     private bool soundOn = true;
 
@@ -19,29 +14,26 @@ public class PauseButton : MonoBehaviour
     {
         pauseButtonComponent = this.GetComponent<PauseButton>();
         audioSource = audioObj.GetComponent<AudioSource>();
-        audioClip = audioSource.clip;
     }
 
     private void OnEnable()
     {
-        print("скрипт включился");
         gameScripts.GetComponent<MouseController>().enabled = false;
-       Time.timeScale = 0;
-    }
-    private void OnDisable()
-    {
-      //  print("скрипт вЫключился");
-      //  gameScripts.GetComponent<MouseController>().enabled = true;
-      //Time.timeScale = 1;
+        Time.timeScale = 0;
     }
 
+    private void OnDisable()
+    {
+        gameScripts.GetComponent<MouseController>().enabled = true;
+        Time.timeScale = 1;
+    }
 
     private void OnGUI()
     {
         GamePauseGUI();
     }
 
-  private  void GamePauseGUI()
+    private void GamePauseGUI()
     {
         GUIStyle stylePauseButton = GUI.skin.GetStyle("Button");
         GUIStyle stylePauseBox = GUI.skin.GetStyle("Box");
@@ -53,7 +45,7 @@ public class PauseButton : MonoBehaviour
         if (GUI.Button(new Rect(Screen.width * 0.5f - 120f, Screen.height * 0.5f - 120f, 240, 50),
         "ON/OFF SOUND", stylePauseButton))
         {
-            if(soundOn)
+            if (soundOn)
             {
                 soundOn = false;
                 audioSource.Pause();
@@ -61,10 +53,8 @@ public class PauseButton : MonoBehaviour
             else
             {
                 soundOn = true;
-            //    audioSource.Play();
-               audioSource.UnPause();
+                audioSource.UnPause();
             }
-
         }
         if (GUI.Button(new Rect(Screen.width * 0.5f - 100f, Screen.height * 0.5f - 60f, 200, 50),
         "RESUME", stylePauseButton))

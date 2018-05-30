@@ -1,32 +1,31 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameIndicators : MonoBehaviour
 {
-  public  enum GameMode
+    public enum GameMode
     {
         time,
         moves
     }
 
-    public static int level =1;
-    public static GameMode gameMode=GameMode.time;
+    public static int level = 1; // поле генерируется до 10-го (включительно) уровня
+    public static GameMode gameMode = GameMode.time;
     //private int lastLevel= level;
+    //private int lives;
 
     [SerializeField] private GameObject timeBarObj;
     [SerializeField] private GameObject movesBarObj;
-
     [SerializeField] private GameObject gameScripts;
-   [SerializeField] private GameObject shakeText;
-    [SerializeField] private GameObject pointsObj;
+    [SerializeField] private GameObject shakeText;
     private Transform shakeTextTransform;
+    [SerializeField] private GameObject pointsObj;
     [SerializeField] private GameObject winLoseText;
+    private Transform winLoseTextTransform;
     private TextMesh winLoseTextMesh;
     [SerializeField] private GameObject minPointsText;
     private TextMesh minPointsTextMesh;
-    private Transform winLoseTextTransform;
     [SerializeField] private GameObject pauseButtonObj;
     private PauseButton pauseButtonComponent;
 
@@ -35,12 +34,8 @@ public class GameIndicators : MonoBehaviour
     public static int pointsWinByTime = 70;
     public static int pointsWinByMoves = 34;
 
-    public static Vector3 pointsObjOffset=new Vector3(0,-3,0);
+    public static Vector3 pointsObjOffset = new Vector3(0, -3, 0);
     public static Vector3 boxPointPosition;
-
-    private float levelTime;
-
-    private int lives;
 
     private void Awake()
     {
@@ -51,22 +46,23 @@ public class GameIndicators : MonoBehaviour
         winLoseTextMesh = winLoseText.GetComponent<TextMesh>();
         winLoseTextTransform = winLoseText.transform;
         winLoseText.SetActive(false);
-        minPointsTextMesh= minPointsText.GetComponent<TextMesh>();
+        minPointsTextMesh = minPointsText.GetComponent<TextMesh>();
     }
 
     private void Start()
     {
-       boxPointPosition= Field.IndicatorsCentrePosition + pointsObjOffset;
+        boxPointPosition = Field.IndicatorsCentrePosition + pointsObjOffset;
         pointsObj.transform.position = boxPointPosition;
     }
+
     private void OnEnable()
     {
         AnalysisToolsRelativePosition.ShakeUpEvent += Shake;
-        if(gameMode==GameMode.moves)
+        if (gameMode == GameMode.moves)
         {
             minPointsTextMesh.text = "/" + pointsWinByMoves.ToString();
-        MovesBar.WinLevelEvent += Win;
-        MovesBar.LoseLevelEvent += Lose;
+            MovesBar.WinLevelEvent += Win;
+            MovesBar.LoseLevelEvent += Lose;
             timeBarObj.SetActive(false);
         }
         if (gameMode == GameMode.time)
@@ -101,17 +97,17 @@ public class GameIndicators : MonoBehaviour
     }
 
     private void Shake()
-    {  
+    {
         StartCoroutine(ShakeTextCoroutine());
     }
 
-        private IEnumerator ShakeTextCoroutine()
+    private IEnumerator ShakeTextCoroutine()
     {
         shakeText.SetActive(true);
         float timeForScaling = 0.5f;
         float frequency = 1 / timeForScaling;
         float scaleTime = 0f;
-      Vector3 beginScale= shakeTextTransform.localScale;
+        Vector3 beginScale = shakeTextTransform.localScale;
         Vector3 targetScale = beginScale;
         targetScale.y = 4f;
         while (scaleTime < timeForScaling)
@@ -131,7 +127,6 @@ public class GameIndicators : MonoBehaviour
 
     private void Win()
     {
-        
         winLoseTextMesh.text = "YOU WIN :)";
         gameScripts.GetComponent<MouseController>().enabled = false;
         StartCoroutine(WinLoseTextCoroutine());
@@ -139,11 +134,10 @@ public class GameIndicators : MonoBehaviour
 
     private void Lose()
     {
-        gameScripts.GetComponent<MouseController>().enabled = false;
         winLoseTextMesh.text = "YOU LOSE :(";
+        gameScripts.GetComponent<MouseController>().enabled = false;
         StartCoroutine(WinLoseTextCoroutine());
     }
-
 
     private IEnumerator WinLoseTextCoroutine()
     {
@@ -161,7 +155,6 @@ public class GameIndicators : MonoBehaviour
             {
                 scaleTime = timeForScaling;
             }
-
             winLoseTextTransform.localScale = Vector3.Lerp(beginScale, targetScale, scaleTime * frequency);
             yield return null;
         }
@@ -174,7 +167,7 @@ public class GameIndicators : MonoBehaviour
                 scaleTime = timeForScaling;
             }
 
-            winLoseTextTransform.localScale = Vector3.Lerp( targetScale, beginScale,scaleTime * frequency);
+            winLoseTextTransform.localScale = Vector3.Lerp(targetScale, beginScale, scaleTime * frequency);
             yield return null;
         }
         winLoseTextTransform.localScale = beginScale;

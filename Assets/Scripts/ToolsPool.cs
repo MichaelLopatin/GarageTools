@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public enum ToolType
@@ -19,7 +18,7 @@ public enum ToolType
     toolBox,
     quantity,
     noTool = -2,
-    exchangeTool=-1,
+    exchangeTool = -1,
 }
 
 public class ToolsPool : MonoBehaviour

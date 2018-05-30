@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public enum ToolMoveType
@@ -9,15 +8,8 @@ public enum ToolMoveType
     moveDown
 }
 
-
 public class AnalysisToolsRelativePosition : MonoBehaviour
 {
-    //private enum Pair
-    //{
-    //    first = 0,
-    //    second = 1,
-    //}
-
     public delegate void MoveTool(int curentCellID, int newCellID, float newX, float newY, ToolMoveType toolMoveType);
     public static event MoveTool MoveToolEvent;
     public delegate void GatherTool(int cellID);
@@ -32,35 +24,18 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
     public static event InvisibleTip InvisibleTipEvent;
     public delegate void PlayerMove();
     public static event PlayerMove PlayerMoveEvent;
-    //public delegate void CreateToolsGroup(int cellID, ToolType toolType);
-    //public static event CreateToolsGroup CreateToolsGroupEvent;
 
     private static int[] exchangeTools;
-
-    //public static bool isChanging = false;
-    //public static bool isMovingDown = false;
-    //public static bool isGathering = false;
-    //public static bool isMatchManipulation = false;
-
     private int[] tipsOnField;
     private int[] haveMatchOnField;
-    private int[] columnsWithEmptyCells;
-
-    private int[] columnsWithFallingTools;
 
     private bool fallingToolsExist = false;
     private bool wasFalling = false;
     private bool matchesAllField = false;
     private bool tipIsVisible = false;
     private int tipCellId = -1;
-
-
     private float controlTime;
 
-    private void Awake()
-    {
-
-    }
     private void OnEnable()
     {
         MouseController.SelectCellEvent += CheckChangeTools;
@@ -69,9 +44,6 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         Tool.EndToolMovementEvent += CheckMatchesInCell;
         Tool.ZeroControlTimeEvent += ZeroControlTime;
         InvisibleTipEvent += ResetTip;
-  
-
-
     }
 
     private void OnDisable()
@@ -87,14 +59,10 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
     private void Start()
     {
         SetExchangeTools(out exchangeTools);
-
-        SetTipsAndMatchAndColumnsOnField(out tipsOnField, out haveMatchOnField, out columnsWithEmptyCells);
-
+        SetTipsAndMatchAndColumnsOnField(out tipsOnField, out haveMatchOnField);
         FindTipsInField();
-        columnsWithFallingTools = new int[Field.CurentFieldWidth];
         for (int i = 0; i < Field.CurentFieldWidth; i++)
         {
-            columnsWithFallingTools[i] = 0;
             StartCoroutine(EmptyCellsManipulationCoroutine(i));
         }
     }
@@ -111,13 +79,14 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         {
             StartCoroutine(CheckMatchesAfterFallAllField());
         }
-        if(Input.GetKey(KeyCode.Escape))
+        if (Input.GetKey(KeyCode.Escape))
         {
             Application.Quit();
         }
 
         if (Input.GetMouseButtonDown(1))
         {
+            // "перемешивание" игрового поля, т.к. автоматически мало шансов на это событие, то по нажатию ПКМ
             ShakeUpEvent();
         }
     }
@@ -161,30 +130,25 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         int row = cellID / Field.CurentFieldWidth;
         int column = cellID - row * Field.CurentFieldWidth;
         int targetToolType = Field.toolsOnField[cellID];
-    //    print("сравнение ID " + cellID + ", row " + row + ", column " + column + " type ID " + Field.toolsOnField[cellID] + " typeFunc " + ReturnToolType(row, column));
-
         // массив с индексами строк и рядов для проверки возможных комбинаций {ряд1, строка1, ряд2, строка2}
         const int combinationQuantity = 16;
         const int comparedCellsQuantity = 2;
         int[,] checkIndex = new int[combinationQuantity, comparedCellsQuantity * 2]
          { {-1,-2,-1,-1}, {-1,1,-1,2}, {1,-2,1,-1}, {1,1,1,2},
-{-2,-1,-1,-1}, {-2,1,-1,1}, {1,-1,2,-1}, {1,1,2,1},
-{-1,-1,1,-1}, {-1,1,1,1}, {-1,-1,-1,1}, {1,-1,1,1},
-{0,-3,0,-2}, {0,2,0,3}, {-3,0,-2,0}, {2,0,3,0 } };
+           {-2,-1,-1,-1}, {-2,1,-1,1}, {1,-1,2,-1}, {1,1,2,1},
+           {-1,-1,1,-1}, {-1,1,1,1}, {-1,-1,-1,1}, {1,-1,1,1},
+           {0,-3,0,-2}, {0,2,0,3}, {-3,0,-2,0}, {2,0,3,0 } };
 
         for (int i = 0; i < combinationQuantity; i++)
         {
             if (ReturnToolType(row + checkIndex[i, 0], column + checkIndex[i, 1]) == targetToolType &&
                 ReturnToolType(row + checkIndex[i, 2], column + checkIndex[i, 3]) == targetToolType)
             {
-   //             print("совпадение checkIndex " + i + " id " + cellID + " type " + targetToolType + " " +
-  //   (row + checkIndex[i, 2]) + " " + (column + checkIndex[i, 0]) + " t " + ReturnToolType(column + checkIndex[i, 0], row + checkIndex[i, 2]) + (row + checkIndex[i, 3]) + " " + (column + checkIndex[i, 1]) + " t " + ReturnToolType(column + checkIndex[i, 1], row + checkIndex[i, 3]));
                 tipsOnField[cellID] = (int)Cell.isTip;
                 return;
             }
         }
     }
-
 
     private int ReturnToolType(int i, int j)
     {
@@ -216,28 +180,21 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
                 tipsNumber++;
             }
         }
-        //  print("tipsNumber " + tipsNumber);
-        // PrintArr(tips);
         tipCellId = tips[Random.Range(0, tipsNumber)];
-        //print("tipCellId " + tipCellId);
         if (VisibleTipEvent != null)
         {
             VisibleTipEvent(tipCellId);
         }
-
     }
 
     private void FindTipsInField()
     {
         int fieldSize = Field.FieldSize;
         int tips = 0;
-
         for (int i = 0; i < fieldSize; i++)
         {
             FindTipInCell(i);
         }
-     //   PrintArr(tipsOnField);
-      //  PrintArr(Field.toolsOnField);
         for (int i = 0; i < fieldSize; i++)
         {
             tips += tipsOnField[i];
@@ -251,9 +208,8 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         }
     }
 
-    private void SetTipsAndMatchAndColumnsOnField(out int[] tipsOnField, out int[] haveMatchOnField, out int[] columnsWithEmptyCells)
+    private void SetTipsAndMatchAndColumnsOnField(out int[] tipsOnField, out int[] haveMatchOnField)
     {
-        print("SetTipsAndMatchAndColumnsOnField  fieldSize");
         int size = Field.FieldSize;
         int width = Field.CurentFieldWidth;
         tipsOnField = new int[size];
@@ -263,36 +219,8 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
             tipsOnField[i] = (int)Cell.isNotTip;
             haveMatchOnField[i] = (int)Cell.isNotMatch;
         }
-        columnsWithEmptyCells = new int[width];
-        for (int i = 0; i < width; i++)
-        {
-            columnsWithEmptyCells[i] = 0;
-        }
-    }
-    private void PrintArr(int[] arr) // для текстового контроля
-    {
-        string s = "";
-        for (int i = 0; i < arr.Length; i++)
-        {
-            s = s + arr[i].ToString() + " ";
-        }
-        print(s);
     }
 
-    private void PrintField(int[] field, int width, int height)
-    {
-        string s = "";
-        for (int i = 0, k = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++, k++)
-            {
-                s = s + field[k].ToString() + " ";
-            }
-
-            s = s + "\n";
-        }
-        print(s);
-    }
 
     private void CheckChangeTools(int selectedSellID, int lastSelectedСellID)
     {
@@ -300,7 +228,6 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         {
             if (exchangeTools[selectedSellID] == (int)Cell.isNotExchange && exchangeTools[lastSelectedСellID] == (int)Cell.isNotExchange)
             {
-
                 int selectedToolType;
                 int lastSelectedToolType;
 
@@ -309,7 +236,6 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
                     selectedSellID - lastSelectedСellID == -Field.CurentFieldWidth ||
                     selectedSellID - lastSelectedСellID == Field.CurentFieldWidth)
                 {
-                    //isChanging = true;
                     if (MoveToolEvent != null)
                     {
                         MoveToolEvent(lastSelectedСellID, selectedSellID, Field.cellsXYCoord[selectedSellID, (int)Cell.x], Field.cellsXYCoord[selectedSellID, (int)Cell.y], ToolMoveType.firstExgange);
@@ -346,16 +272,13 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
             }
             if (exchangeTools[cellToExchangeID] == (int)Cell.isNotExchange)
             {
-                //   isChanging = true;
                 int swipeCellToolType;
                 int cellToExchangeToolType;
-
                 if (MoveToolEvent != null)
                 {
                     MoveToolEvent(cellToExchangeID, swipeCellID, Field.cellsXYCoord[swipeCellID, (int)Cell.x], Field.cellsXYCoord[swipeCellID, (int)Cell.y], ToolMoveType.firstExgange);
                     MoveToolEvent(swipeCellID, cellToExchangeID, Field.cellsXYCoord[cellToExchangeID, (int)Cell.x], Field.cellsXYCoord[cellToExchangeID, (int)Cell.y], ToolMoveType.firstExgange);
                 }
-
                 swipeCellToolType = Field.toolsOnField[swipeCellID];
                 cellToExchangeToolType = Field.toolsOnField[cellToExchangeID];
             }
@@ -364,13 +287,8 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
 
     private void CheckMatchesInCell(int id, int lastId, ToolMoveType toolMoveType)
     {
-
-        //    isMatchManipulation = true;
-        //   isChanging = false;
-
         if (toolMoveType == ToolMoveType.secondExgenge)
         {
-            //       isMatchManipulation = false;
             return;
         }
         int width = Field.CurentFieldWidth;
@@ -450,17 +368,13 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
                 }
             }
         }
-
-        //    print(" matcheInRow " + matcheInRow + " matcheInColumn " + matcheInColumn);
-        //PrintArr(matchInRowID);
-        //PrintArr(matchInColumnID);
         if (matcheInRow < 2 && matcheInColumn < 2)
         {
             haveMatchOnField[id] = (int)Cell.isNotMatch;
         }
         else
         {
-            if(InvisibleTipEvent!=null)
+            if (InvisibleTipEvent != null)
             {
                 InvisibleTipEvent(tipCellId);
             }
@@ -469,17 +383,13 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
                 PlayerMoveEvent();
             }
             haveMatchOnField[id] = (int)Cell.isMatch;
-            //         print("haveMatchOnField[" + id + "] = " + haveMatchOnField[id]);
         }
         StartCoroutine(CheckReturnExgangeCoroutine(id, lastId, matchInRowID, matcheInRow, matchInColumnID, matcheInColumn, toolMoveType));
-
     }
 
     private IEnumerator CheckReturnExgangeCoroutine(int checkId, int secondId, int[] matchInRowID, int matcheInRow, int[] matchInColumnID, int matcheInColumn, ToolMoveType toolMoveType)
     {
-        //       print("CheckReturnExgangeCoroutine");
         yield return null;
-
         if (haveMatchOnField[checkId] == (int)Cell.isNotMatch && haveMatchOnField[secondId] == (int)Cell.isNotMatch)
         {
             if (toolMoveType == ToolMoveType.firstExgange)
@@ -502,19 +412,13 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
             }
         }
         yield return null;
-        //     isChanging = false;
         haveMatchOnField[checkId] = (int)Cell.isNotMatch;
     }
 
     private void MatchManipulation(int[] matchID, int basicId, int matchCount)
     {
-        //print("matchCount= " + matchCount);
-        //PrintArr(matchID);
-        //print("basicId= " + basicId + " Field.toolsOnField[" + basicId + "] = " + Field.toolsOnField[basicId]);
-        //    isGathering = true;
         if (GatherToolEvent != null)
         {
-            //          print("GatherToolEvent basicId= " + basicId);
             GatherToolEvent(basicId);
         }
         switch (matchCount)
@@ -524,7 +428,6 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
                 {
                     if (GatherToolEvent != null)
                     {
-                        //          print("GatherToolEvent id= " + matchID[i]);
                         GatherToolEvent(matchID[i]);
                     }
                 }
@@ -534,7 +437,6 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
                 {
                     if (GatherToolEvent != null)
                     {
-                        //            print("GatherToolEvent id= " + matchID[i]);
                         GatherToolEvent(matchID[i]);
                     }
                 }
@@ -544,7 +446,6 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
                 {
                     if (GatherToolEvent != null)
                     {
-                        //           print("GatherToolEvent id= " + matchID[i]);
                         GatherToolEvent(matchID[i]);
                     }
                 }
@@ -552,14 +453,11 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
             default:
                 break;
         }
-
-        //      isMatchManipulation = false;
     }
 
 
     private IEnumerator EmptyCellsManipulationCoroutine(int column)
     {
-        //   EmptyCellsManipulationIsRuning = true;
         bool emptyCellExist = false;
         int cellsToMoveNumber = 0;
         int curentId = -1;
@@ -567,32 +465,23 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         int height = Field.CurentFieldHeight;
         int fieldSize = Field.FieldSize;
         int[] cellsIdToMoveDown = new int[height];
-        //     int[] cellsToolsType = new int[height]; // для информации, потом удалить
-        yield return null;
 
+        yield return null;
         while (true)
         {
             emptyCellExist = false;
             cellsToMoveNumber = 0;
             curentId = -1;
-
             for (int i = 0; i < height; i++)
             {
                 cellsIdToMoveDown[i] = -2;
-                //cellsToolsType[i] = -2;
             }
-
-            //string s1 = "id to down ";
-            //string s2 = "ToolsType  ";
-
             if (Field.toolsOnField[column] == (int)ToolType.noTool)
             {
                 AddTool(column);
-
                 wasFalling = true;
             }
             yield return null;
-
             for (int i = 0; i < height; i++)
             {
                 curentId = column + i * width;
@@ -606,20 +495,13 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
                     if (!emptyCellExist)
                     {
                         cellsIdToMoveDown[cellsToMoveNumber] = curentId;
-                        //cellsToolsType[cellsToMoveNumber] = Field.toolsOnField[curentId];
-                        //s1 = s1 + cellsIdToMoveDown[cellsToMoveNumber].ToString() + " ";
-                        //s2 = s2 + cellsToolsType[cellsToMoveNumber].ToString() + " ";
                         cellsToMoveNumber++;
                     }
                 }
             }
-            //print(s1);
-            //print(s2);
-            //print("cellsToMoveNumber " + cellsToMoveNumber);
             if (emptyCellExist)
             {
                 wasFalling = true;
-                columnsWithFallingTools[column] = 1;
                 fallingToolsExist = true;
                 if (cellsToMoveNumber > 0)
                 {
@@ -634,18 +516,11 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
             }
             else
             {
-                columnsWithFallingTools[column] = 0;
                 fallingToolsExist = false;
             }
-            // yield return null;
             yield return new WaitForSeconds(Tool.TimeMoveDown);
         }
-        //   EmptyCellsManipulationIsRuning = false;
     }
-
-
-
-
 
     private void AddTool(int column)
     {
@@ -656,7 +531,6 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         toolType *= 2;
         tool = ToolsPool.toolsReservedListOfStacks[toolType].Pop();
         tool.GetComponent<Tool>().CellID = column;
-
         curentToolPosition.x = Field.cellsXYCoord[column, (int)Cell.x];
         curentToolPosition.y = Field.cellsXYCoord[column, (int)Cell.y];
         tool.transform.position = curentToolPosition;
@@ -666,7 +540,6 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         Field.toolsOnField[column] = toolType;
     }
 
-
     private IEnumerator CheckMatchesAfterFallAllField()
     {
         yield return null;
@@ -674,12 +547,12 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
         int fieldSize = Field.FieldSize;
         for (int i = fieldSize - 1; i >= 0; i--)
         {
-            //yield return null;
             CheckMatchesAfterFall(i);
         }
         wasFalling = false;
         matchesAllField = false;
     }
+
     private void CheckMatchesAfterFallColumn()
     {
         int fieldSize = Field.FieldSize;
@@ -779,7 +652,6 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
                 }
             }
         }
-
         if (matcheInRow > 1 || matcheInColumn > 1)
         {
             if (GatherToolEvent != null)
@@ -787,7 +659,6 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
                 GatherToolEvent(id);
             }
         }
-
         if (matcheInColumn > 1)
         {
             for (int i = 0; i < matcheInColumn; i++)
@@ -808,6 +679,31 @@ public class AnalysisToolsRelativePosition : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void PrintArr(int[] arr) // для текстового контроля
+    {
+        string s = "";
+        for (int i = 0; i < arr.Length; i++)
+        {
+            s = s + arr[i].ToString() + " ";
+        }
+        print(s);
+    }
+
+    private void PrintField(int[] field, int width, int height)
+    {
+        string s = "";
+        for (int i = 0, k = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++, k++)
+            {
+                s = s + field[k].ToString() + " ";
+            }
+
+            s = s + "\n";
+        }
+        print(s);
     }
 
 }

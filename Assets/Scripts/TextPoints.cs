@@ -1,18 +1,17 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class TextPoints : MonoBehaviour
 {
     private TextMesh textMesh;
+
     private void Awake()
     {
         textMesh = GetComponentInChildren<TextMesh>();
-        textMesh.text = 0.ToString();
     }
 
     private void OnEnable()
     {
+        textMesh.text = 0.ToString();
         Tool.ChangePointsEvent += PointsOnScreen;
     }
     private void OnDisable()

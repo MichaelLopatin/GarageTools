@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GreenCell : MonoBehaviour
@@ -7,12 +6,10 @@ public class GreenCell : MonoBehaviour
     private Transform cellTransform;
     private Vector3 basicPosition;
     private Vector3 selectedPosition;
-    [SerializeField] private int cellID;
+    private int cellID;
 
     private void OnEnable()
     {
-        //MouseController.SelectCellEvent += SelectCell;
-        //MouseController.DeselectCellEvent += DeselectCell;
         AnalysisToolsRelativePosition.VisibleTipEvent += VisibleCell;
         AnalysisToolsRelativePosition.InvisibleTipEvent += InvisibleCell;
         cellTransform = this.transform;
@@ -27,9 +24,9 @@ public class GreenCell : MonoBehaviour
         AnalysisToolsRelativePosition.InvisibleTipEvent -= InvisibleCell;
     }
 
-   private void VisibleCell(int selectedCellID)
+    private void VisibleCell(int selectedCellID)
     {
-       if (CellID == selectedCellID)
+        if (CellID == selectedCellID)
         {
             cellTransform.position = selectedPosition;
         }
@@ -42,14 +39,13 @@ public class GreenCell : MonoBehaviour
             cellTransform.position = basicPosition;
         }
     }
-  
 
     private IEnumerator SetCellID()
     {
         yield return null;
         for (int i = 0; i < Field.FieldSize; i++)
         {
-            if (basicPosition.x == Field.cellsXYCoord[i,(int)Cell.x] && basicPosition.y == Field.cellsXYCoord[i, (int)Cell.y])
+            if (basicPosition.x == Field.cellsXYCoord[i, (int)Cell.x] && basicPosition.y == Field.cellsXYCoord[i, (int)Cell.y])
             {
                 CellID = i;
                 yield break;

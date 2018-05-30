@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public enum SwipeDirection
@@ -21,21 +20,20 @@ public class MouseController : MonoBehaviour
     public delegate void PressPauseButton();
     public static event PressPauseButton PressPauseButtonEvent;
 
-    private Vector3 mousePosInWorld;
     [SerializeField] private Camera camera;
 
+    private Vector3 mousePosInWorld;
     private float percentageOfUnitForSwipe = 0.3f;
     private float swipeLaunchDistance = 1f;
     private float deltaX;
     private float deltaY;
-    [SerializeField] private bool isMouseButtonDown = false;
-    [SerializeField] private bool isSwiping = false;
-    [SerializeField] private SwipeDirection swipeDirection;
-
-    [SerializeField] private int selectedСellID = -1;
-    [SerializeField] private int lastSelectedСellID = -1;
-    [SerializeField] private bool haveSelectedCell = false;
-    [SerializeField] private bool justSelectedCell = false;
+    private bool isMouseButtonDown = false;
+    private bool isSwiping = false;
+    private SwipeDirection swipeDirection;
+    private int selectedСellID = -1;
+    private int lastSelectedСellID = -1;
+    private bool haveSelectedCell = false;
+    private bool justSelectedCell = false;
 
     private float borderTop;
     private float borderRight;
@@ -43,8 +41,6 @@ public class MouseController : MonoBehaviour
     private float borderLeft;
 
     private int pauseButtonLayer;
-
-    //    private int selectedCellsNumber = 0;
 
     private void OnEnable()
     {
@@ -65,7 +61,6 @@ public class MouseController : MonoBehaviour
 
     private void Update()
     {
-
         if (isMouseButtonDown && !isSwiping)
         {
             if (selectedСellID >= 0)
@@ -73,6 +68,7 @@ public class MouseController : MonoBehaviour
                 DetermineSwipe(selectedСellID);
             }
         }
+
         if (isSwiping && (haveSelectedCell || justSelectedCell))
         {
             if (DeselectCellEvent != null)
@@ -91,7 +87,6 @@ public class MouseController : MonoBehaviour
             if ((mousePosInWorld.x >= borderLeft && mousePosInWorld.x <= borderRight) &&
     (mousePosInWorld.y >= borderBottom && mousePosInWorld.y <= borderTop))
             {
-
                 if (!isSwiping)
                 {
                     lastSelectedСellID = selectedСellID;
@@ -130,7 +125,7 @@ public class MouseController : MonoBehaviour
                 RaycastHit2D rayHit = Physics2D.Raycast(rayStartPoint2D, Vector2.zero, 15f, 1 << pauseButtonLayer);
                 if (rayHit.collider != null && rayHit.collider.CompareTag("TagPauseButton"))
                 {
-                    if(PressPauseButtonEvent!=null)
+                    if (PressPauseButtonEvent != null)
                     {
                         PressPauseButtonEvent();
                     }
@@ -158,11 +153,6 @@ public class MouseController : MonoBehaviour
             {
                 isSwiping = false;
             }
-
-        }
-        if (Input.GetMouseButtonDown(1))
-        {
-            PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
         }
     }
 
@@ -172,6 +162,7 @@ public class MouseController : MonoBehaviour
         haveSelectedCell = false;
         selectedСellID = -1;
     }
+
     private void DetermineSwipe(int swipeCellID)
     {
         deltaX = camera.ScreenToWorldPoint(Input.mousePosition).x - mousePosInWorld.x;
@@ -189,9 +180,6 @@ public class MouseController : MonoBehaviour
                         if (SwipeEvent != null)
                         {
                             SwipeEvent(swipeCellID, swipeDirection);
-                            //новое положение newID = ID-1
-                            //событие другую клетку поставить на место этой клетки
-                            // Event(newID, ID);
                         }
                     }
                 }
@@ -203,9 +191,6 @@ public class MouseController : MonoBehaviour
                         if (SwipeEvent != null)
                         {
                             SwipeEvent(swipeCellID, swipeDirection);
-                            //новое положение  ID+1
-                            //событие другую клетку поставить на место этой клетки
-                            // Event(newID, ID);
                         }
                     }
                 }
@@ -221,11 +206,7 @@ public class MouseController : MonoBehaviour
                         if (SwipeEvent != null)
                         {
                             SwipeEvent(swipeCellID, swipeDirection);
-                            //новое положение  ID-Field.CurentFieldWidth
-                            //событие другую клетку поставить на место этой клетки
-                            // Event(newID, ID);
                         }
-
                     }
                 }
                 else
@@ -236,9 +217,6 @@ public class MouseController : MonoBehaviour
                         if (SwipeEvent != null)
                         {
                             SwipeEvent(swipeCellID, swipeDirection);
-                            //новое положение  ID+Field.CurentFieldWidth
-                            //событие другую клетку поставить на место этой клетки
-                            // Event(newID, ID);
                         }
                     }
                 }
@@ -265,7 +243,6 @@ public class MouseController : MonoBehaviour
 
     private int BinarySearch(float[] arr, int left, int middle, int right, float coord)
     {
-
         if ((coord >= arr[middle] - Field.CurentUnitScale * 0.5f) &&
             (coord <= arr[middle] + Field.CurentUnitScale * 0.5f))
         {
@@ -289,6 +266,14 @@ public class MouseController : MonoBehaviour
         }
     }
 
+    private IEnumerator SetBorders()
+    {
+        yield return null;
+        borderTop = Field.cellsXYCoord[0, (int)Cell.y] + Field.CurentUnitScale * 0.5f;
+        borderRight = Field.cellsXYCoord[Field.FieldSize - 1, (int)Cell.x] + Field.CurentUnitScale * 0.5f;
+        borderBottom = Field.cellsXYCoord[Field.FieldSize - 1, (int)Cell.y] - Field.CurentUnitScale * 0.5f;
+        borderLeft = Field.cellsXYCoord[0, (int)Cell.x] - Field.CurentUnitScale * 0.5f;
+    }
 
     private void PrintField(int[] field, int width, int height)
     {
@@ -302,15 +287,5 @@ public class MouseController : MonoBehaviour
             s = s + "\n";
         }
         print(s);
-    }
-
-
-    private IEnumerator SetBorders()
-    {
-        yield return null;
-        borderTop = Field.cellsXYCoord[0, (int)Cell.y] + Field.CurentUnitScale * 0.5f;
-        borderRight = Field.cellsXYCoord[Field.FieldSize - 1, (int)Cell.x] + Field.CurentUnitScale * 0.5f;
-        borderBottom = Field.cellsXYCoord[Field.FieldSize - 1, (int)Cell.y] - Field.CurentUnitScale * 0.5f;
-        borderLeft = Field.cellsXYCoord[0, (int)Cell.x] - Field.CurentUnitScale * 0.5f;
     }
 }

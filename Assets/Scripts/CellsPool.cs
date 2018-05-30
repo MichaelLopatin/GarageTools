@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public enum CellType
@@ -15,6 +14,7 @@ public enum CellType
     rightTop,
     quantity
 }
+
 public enum CellColour
 {
     blue = 0,
@@ -39,13 +39,13 @@ public class CellsPool : MonoBehaviour
     public static List<Stack<GameObject>> greenCellsOnFieldListOfStacks = new List<Stack<GameObject>>((int)CellType.quantity);
     public static List<Stack<GameObject>> yellowCellsOnFieldListOfStacks = new List<Stack<GameObject>>((int)CellType.quantity);
 
-    private int feildWidth = 16;
-    private int feildHieght = 16;
+    private int fieldWidth = 16;
+    private int fieldHieght = 16;
     private int[] numberOfPiecesEachCellType;
 
     private void Awake()
     {
-        SetNumberOfPiecesEachCellType(out numberOfPiecesEachCellType, feildWidth, feildHieght);
+        SetNumberOfPiecesEachCellType(out numberOfPiecesEachCellType, fieldWidth, fieldHieght);
 
         FillStack(ref blueCellsReservedListOfStacks, blueCells, numberOfPiecesEachCellType, parentTransform[(int)CellColour.blue]);
         FillStack(ref greenCellsReservedListOfStacks, greenCells, numberOfPiecesEachCellType, parentTransform[(int)CellColour.green]);
