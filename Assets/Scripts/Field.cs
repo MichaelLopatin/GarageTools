@@ -4,14 +4,17 @@ using UnityEngine;
 
 enum Cell
 {
-    x=0,
-    y=1,
+    x = 0,
+    y = 1,
     isNotExchange = 0,
     isExchange = 1,
     isNotMatch = 0,
     isMatch = 1,
     isNotTip = 0,
     isTip = 1,
+    isEmpty = -1,
+    isNotEmpty = 0,
+    justCreate=-50,
 }
 
 public class Field : MonoBehaviour
@@ -31,11 +34,14 @@ public class Field : MonoBehaviour
     private static int fieldSize = 0;
 
     private Vector3 gameFieldCentrePosition;
-    private Vector3 indicatorsCentrePosition;
+    private static Vector3 indicatorsCentrePosition;
     private Vector3 firstCellPosition;
 
     public static float[,] cellsXYCoord;
+    public static float[,] startCellsXYCoord;
     public static int[] toolsOnField;
+    public static int[] emptyOnField;
+    public static int emptyCells=0;
 
     private void Awake()
     {
@@ -43,12 +49,12 @@ public class Field : MonoBehaviour
     }
     private void OnEnable()
     {
-        
+
     }
 
     private void Start()
     {
-        SetField(ref CellsPool.blueCellsReservedListOfStacks, ref CellsPool.blueCellsOnFieldListOfStacks, CellColour.blue,GameIndicators.level, firstCellPosition);
+        SetField(ref CellsPool.blueCellsReservedListOfStacks, ref CellsPool.blueCellsOnFieldListOfStacks, CellColour.blue, GameIndicators.level, firstCellPosition);
         SetField(ref CellsPool.greenCellsReservedListOfStacks, ref CellsPool.greenCellsOnFieldListOfStacks, CellColour.green, GameIndicators.level, firstCellPosition);
         SetField(ref CellsPool.yellowCellsReservedListOfStacks, ref CellsPool.yellowCellsOnFieldListOfStacks, CellColour.yellow, GameIndicators.level, firstCellPosition);
     }
@@ -73,32 +79,39 @@ public class Field : MonoBehaviour
 
     private void SettingFieldParameters()
     {
-        SetFieldsCentrePositions(out gameFieldCentrePosition, out indicatorsCentrePosition);
+        SetFieldsCentrePositions(out gameFieldCentrePosition);
         curentFieldWidth = SetFieldWidth(GameIndicators.level);
         curentFieldHeight = SetFieldHeight(GameIndicators.level);
         curentUnitScale = SetUnitScale(GameIndicators.level);
         fieldSize = curentFieldWidth * curentFieldHeight;
         firstCellPosition = SetFirstCellPosition(curentFieldWidth, curentFieldHeight, curentUnitScale, gameFieldCentrePosition);
-        SetCellsCoordinates(out cellsXYCoord, curentFieldWidth, curentFieldHeight, curentUnitScale, firstCellPosition);
-        Field.toolsOnField = new int[fieldSize];
+        SetCellsCoordinates(out cellsXYCoord,out startCellsXYCoord, curentFieldWidth, curentFieldHeight, curentUnitScale, firstCellPosition);
+        toolsOnField = new int[fieldSize];
+        emptyOnField = new int[fieldSize];
     }
 
-    private void SetCellsCoordinates(out float[,] cellsXYCoord, int curentFieldWidth, int curentFieldHeight, float curentUnitScale, Vector3 firstCellPosition)
+    private void SetCellsCoordinates(out float[,] cellsXYCoord, out float[,] startCellsXYCoord, int curentFieldWidth, int curentFieldHeight, float curentUnitScale, Vector3 firstCellPosition)
     {
         Vector3 curentCellCoord = firstCellPosition;
-        
-        cellsXYCoord = new float[curentFieldWidth*curentFieldHeight,2];
 
-        for(int i=0;i<FieldSize;i++)
+        cellsXYCoord = new float[curentFieldWidth * curentFieldHeight, 2];
+        startCellsXYCoord = new float[curentFieldWidth, 2];
+
+        for (int i = 0; i < FieldSize; i++)
         {
             cellsXYCoord[i, (int)Cell.x] = curentCellCoord.x;
             cellsXYCoord[i, (int)Cell.y] = curentCellCoord.y;
             curentCellCoord.x += curentUnitScale;
-            if (i%(curentFieldWidth)== curentFieldWidth-1)
+            if (i % (curentFieldWidth) == curentFieldWidth - 1)
             {
                 curentCellCoord.x = firstCellPosition.x;
                 curentCellCoord.y -= curentUnitScale;
             }
+        }
+        for (int i = 0; i < curentFieldWidth; i++)
+        {
+            startCellsXYCoord[i, (int)Cell.x] = cellsXYCoord[i, (int)Cell.x];
+            startCellsXYCoord[i, (int)Cell.y] = cellsXYCoord[i, (int)Cell.y] + curentUnitScale;
         }
     }
 
@@ -207,16 +220,14 @@ public class Field : MonoBehaviour
         }
     }
 
-    private void SetFieldsCentrePositions(out Vector3 gameFieldCentrePosition, out Vector3 indicatorsCentrePosition)
+    private void SetFieldsCentrePositions(out Vector3 gameFieldCentrePosition)
     {
         Vector3 screenSizeInUnits;
         float xFieldPos;
         float xIndicatorsPos;
-
         screenSizeInUnits = mainCam.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, 0));
         xFieldPos = screenSizeInUnits.x - screenSizeInUnits.y;
         gameFieldCentrePosition = new Vector3(xFieldPos, 0, 0);
-
         xIndicatorsPos = xFieldPos - screenSizeInUnits.x;
         indicatorsCentrePosition = new Vector3(xIndicatorsPos, 0, 0);
     }
@@ -253,7 +264,7 @@ public class Field : MonoBehaviour
         {
             return curentUnitScale;
         }
-       private set
+        private set
         {
             curentUnitScale = value;
         }
@@ -292,6 +303,18 @@ public class Field : MonoBehaviour
         private set
         {
             fieldSize = value;
+        }
+    }
+
+    public static Vector3 IndicatorsCentrePosition
+    {
+        get
+        {
+            return indicatorsCentrePosition;
+        }
+       private set
+        {
+            indicatorsCentrePosition = value;
         }
     }
 }

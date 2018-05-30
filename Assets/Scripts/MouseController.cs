@@ -39,6 +39,7 @@ public class MouseController : MonoBehaviour
     private float borderRight;
     private float borderBottom;
     private float borderLeft;
+//    private int selectedCellsNumber = 0;
 
     private void OnEnable()
     {
@@ -115,6 +116,9 @@ public class MouseController : MonoBehaviour
                 lastSelectedСellID = -1;
                 haveSelectedCell = false;
                 justSelectedCell = false;
+
+ 
+
             }
         }
 
@@ -140,10 +144,10 @@ public class MouseController : MonoBehaviour
             }
 
         }
-        //if (Input.GetMouseButtonDown(1))
-        //{
-        //    PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
-        //}
+        if (Input.GetMouseButtonDown(1))
+        {
+            PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
+        }
     }
 
     private void CleanSelectedFlags(int id)

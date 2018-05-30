@@ -18,11 +18,27 @@ public class ToolsAtStart : MonoBehaviour
 
     private void OnEnable()
     {
-
-    }
+        AnalysisToolsRelativePosition.ShakeUpEvent += Shake;
+       }
 
     private void OnDisable()
     {
+        AnalysisToolsRelativePosition.ShakeUpEvent -= Shake;
+    }
+
+    private void Shake()
+    {
+        StartCoroutine(ShakeCoroutine());
+    }
+
+    private IEnumerator ShakeCoroutine()
+    {
+        yield return null;
+        Field.emptyOnField = new int[Field.FieldSize];
+        Field.toolsOnField=new int[Field.FieldSize];
+        FillGameField(ref Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldWidth);
+     //   PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
+        SetToolsOnFieldInStart(Field.toolsOnField, ref ToolsPool.toolsReservedListOfStacks, ref ToolsPool.toolsOnFieldListOfStacks, Field.CurentFieldWidth, Field.CurentFieldHeight, Field.CurentUnitScale);
 
     }
 
@@ -38,6 +54,7 @@ public class ToolsAtStart : MonoBehaviour
         }
         for (int i = 0; i < fieldSize; i++)
         {
+            Field.emptyOnField[i] = (int)Cell.isNotEmpty;
             Field.toolsOnField[i] = toolTypesNumber[Random.Range(0, typesSingleToolsQuantity)];
         }
         PrintField(Field.toolsOnField, Field.CurentFieldWidth, Field.CurentFieldHeight);
@@ -236,6 +253,7 @@ public class ToolsAtStart : MonoBehaviour
         }
         print(s);
     }
+
     private void PrintArr(int[] arr) // для текстового контроля
     {
         string s = "";

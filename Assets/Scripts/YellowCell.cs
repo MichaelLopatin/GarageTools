@@ -7,7 +7,7 @@ public class YellowCell : MonoBehaviour
     private Transform cellTransform;
     private Vector3 basicPosition;
     private Vector3 selectedPosition;
-   [SerializeField] private int cellID;
+    [SerializeField] private int cellID;
 
     private void OnEnable()
     {
@@ -19,7 +19,6 @@ public class YellowCell : MonoBehaviour
         basicPosition = cellTransform.position;
         selectedPosition = basicPosition + new Vector3(0, 0, -4);
         StartCoroutine(SetCellID());
-
     }
 
     private void OnDisable()
@@ -34,18 +33,19 @@ public class YellowCell : MonoBehaviour
     {
         if (CellID == selectedCellID)
         {
-                cellTransform.position = selectedPosition;
-         }
+            cellTransform.position = selectedPosition;
+        }
     }
+
     private void DeselectCell(int id)
     {
         if (CellID == id)
         {
-          cellTransform.position = basicPosition;
+            cellTransform.position = basicPosition;
         }
     }
 
- 
+
     private IEnumerator SetCellID()
     {
         yield return null;

@@ -11,39 +11,39 @@ public class GreenCell : MonoBehaviour
 
     private void OnEnable()
     {
-           //MouseController.SelectCellEvent += SelectCell;
+        //MouseController.SelectCellEvent += SelectCell;
         //MouseController.DeselectCellEvent += DeselectCell;
-
+        AnalysisToolsRelativePosition.VisibleTipEvent += VisibleCell;
+        AnalysisToolsRelativePosition.InvisibleTipEvent += InvisibleCell;
         cellTransform = this.transform;
         basicPosition = cellTransform.position;
-        selectedPosition = basicPosition + new Vector3(0, 0, -2);
+        selectedPosition = basicPosition + new Vector3(0, 0, -2f);
         StartCoroutine(SetCellID());
     }
 
     private void OnDisable()
     {
-
+        AnalysisToolsRelativePosition.VisibleTipEvent -= VisibleCell;
+        AnalysisToolsRelativePosition.InvisibleTipEvent -= InvisibleCell;
     }
 
+   private void VisibleCell(int selectedCellID)
+    {
+       if (CellID == selectedCellID)
+        {
+            cellTransform.position = selectedPosition;
+        }
+    }
 
-    //private void SelectCell(int selectedCellID, int lastSelectedСellID)
-    //{
-    //    if (CellID == selectedCellID)
-    //    {
-    //        cellTransform.position = selectedPosition;
-    //        isSelected = true;
-    //    }
-    //}
-    //private void DeselectCell(int id)
-    //{
-    //    if (CellID == id)
-    //    {
-    //        cellTransform.position = basicPosition;
-    //        isSelected = false;
-    //    }
-    //}
-
+    private void InvisibleCell(int selectedCellID)
+    {
+        if (CellID == selectedCellID)
+        {
+            cellTransform.position = basicPosition;
+        }
+    }
   
+
     private IEnumerator SetCellID()
     {
         yield return null;

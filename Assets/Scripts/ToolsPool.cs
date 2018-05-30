@@ -18,7 +18,8 @@ public enum ToolType
     spannerGroup,
     toolBox,
     quantity,
-    isEmpty = -1,
+    noTool = -2,
+    exchangeTool=-1,
 }
 
 public class ToolsPool : MonoBehaviour
